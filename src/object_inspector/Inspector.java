@@ -1,5 +1,8 @@
 package object_inspector;
 
+import java.util.Vector;
+
+@SuppressWarnings("rawtypes") 
 public class Inspector {
 	public Inspector()
 	{
@@ -8,6 +11,7 @@ public class Inspector {
 	
 	public void inspect(Object obj, boolean recursive)
 	{
+		Vector<Class> interfaces = new Vector<Class>();
 		Class c = obj.getClass();
 		String[] classNameDetails = getClassNameDetails(c);
 		System.out.println("Inspecting " + (classNameDetails[0].compareTo("0") == 0 ? "Non-array" : classNameDetails[0] + "D") + " object: " + classNameDetails[1] + "");
@@ -64,8 +68,34 @@ public class Inspector {
 		}
 	}
 	
+	/**
+	 * 
+	 * @param c
+	 */
 	public void inspectInterfaces(Class c)
 	{
-		
+		Class[] curInterfaces = c.getInterfaces();
+		if (curInterfaces.length > 0)
+		{
+			for(int i = 0; i < curInterfaces.length; i ++)
+			{
+				System.out.println(curInterfaces[i]);
+			}
+		}
+	}
+	
+	/**
+	 * 
+	 * @param c
+	 * @param interfaces
+	 */
+	public void getAllSuperClasses(Class c, Vector<Class> superclasses)
+	{
+		Class superclass = c.getSuperclass();
+		if (superclass != null)
+		{
+			superclasses.addElement(superclass);
+			getAllSuperClasses(superclass, superclasses);
+		}
 	}
 }
