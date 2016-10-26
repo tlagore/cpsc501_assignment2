@@ -74,8 +74,11 @@ public class Asst2TestDriver
     //====================== MAIN =======================================
     public static void main(String[] args)
     {
+//    	ObjectInspector insps = new ObjectInspector();
+//    	insps.inspect(true, true);
+    	
     	object_inspector.Inspector insp = new object_inspector.Inspector();
-    	insp.inspect(new ClassA(), false);
+    	insp.inspect(true, false);
     	
 //	boolean rec=true;
 //
