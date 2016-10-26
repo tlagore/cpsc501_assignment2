@@ -2,12 +2,33 @@ package object_inspector_tests;
 
 import static org.junit.Assert.*;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
+
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import object_inspector.Inspector;
 
 public class Inspector_Tests {
 
+	private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+	private final ByteArrayOutputStream errContent = new ByteArrayOutputStream();
+
+	@Before
+	public void setUpStreams() {
+	    System.setOut(new PrintStream(outContent));
+	    System.setErr(new PrintStream(errContent));
+	}
+
+	@After
+	public void cleanUpStreams() {
+	    System.setOut(null);
+	    System.setErr(null);
+	}
+	
 	@Test
 	public void testGetClassNameDetails() {
 		Inspector inspector = new Inspector();
@@ -39,6 +60,19 @@ public class Inspector_Tests {
 		name = inspector.getClassNameDetails(((Object)new char[1][1][1][1][1][1]).getClass());
 		assertEquals(name[0],"6");
 		assertEquals(name[1],"C");
+	}
+	
+	@Test
+	public void testInspectSuperclass()
+	{
+		Inspector inspector = new Inspector();
+		inspector.inspectSuperclass((new String[1][1]).getClass());
+		assertEquals("Superclass: java.lang.Object\r\n", outContent.toString());
+		
+		outContent.reset();
+		inspector.inspectSuperclass((new String("Hello")).getClass());
+		String out = outContent.toString();
+		assertEquals("Superclass: java.lang.Object\r\n", outContent.toString());
 	}
 
 }

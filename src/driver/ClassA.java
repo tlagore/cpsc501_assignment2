@@ -1,3 +1,4 @@
+package driver;
 public final class ClassA implements java.io.Serializable, Runnable
 {
     public ClassA() { val=3; }

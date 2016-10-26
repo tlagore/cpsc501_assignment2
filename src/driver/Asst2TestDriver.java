@@ -1,3 +1,4 @@
+package driver;
 /*==========================================================================
 File: Asst2TestDriver.java
 Purpose: Driver program that loads the objects inspector and runs the
@@ -78,7 +79,7 @@ public class Asst2TestDriver
 //    	insps.inspect(true, true);
     	
     	object_inspector.Inspector insp = new object_inspector.Inspector();
-    	insp.inspect(true, false);
+    	insp.inspect(new ClassA[1][1], false);
     	
 //	boolean rec=true;
 //

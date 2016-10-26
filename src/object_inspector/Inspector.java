@@ -9,10 +9,11 @@ public class Inspector {
 	public void inspect(Object obj, boolean recursive)
 	{
 		Class c = obj.getClass();
-		String[] className = getClassNameDetails(c);
-		System.out.println(className[0] + " " + className[1]);
+		String[] classNameDetails = getClassNameDetails(c);
+		System.out.println("Inspecting " + (classNameDetails[0].compareTo("0") == 0 ? "Non-array" : classNameDetails[0] + "D") + " object: " + classNameDetails[1] + "");
+		inspectSuperclass(c);
+		inspectInterfaces(c);
 	}
-	
 	
 	/**
 	 * getClassNameDetails
@@ -44,5 +45,27 @@ public class Inspector {
 			fullClassName[1] = className;
 		
 		return fullClassName;
+	}
+	
+	/**
+	 * 
+	 * @param c
+	 */
+	public void inspectSuperclass(Class c)
+	{
+		Class superclassObject = c.getSuperclass();
+		String superclassName;
+		
+		//null indicates that c was of type Object
+		if (superclassObject != null)
+		{
+			superclassName = superclassObject.getName();
+			System.out.println("Superclass: " + superclassName);
+		}
+	}
+	
+	public void inspectInterfaces(Class c)
+	{
+		
 	}
 }

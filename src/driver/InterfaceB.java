@@ -1,3 +1,4 @@
+package driver;
 
 public interface InterfaceB
 {
