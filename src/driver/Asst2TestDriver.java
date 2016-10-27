@@ -80,7 +80,7 @@ public class Asst2TestDriver
     	
     	object_inspector.Inspector insp = new object_inspector.Inspector();
     	
-    	insp.inspect(new ClassA(), false);
+    	insp.inspect(new MyClassB(), false);
     	
 //	boolean rec=true;
 //

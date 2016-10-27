@@ -2,6 +2,7 @@ package object_inspector;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Iterator;
 import java.util.Vector;
 
 @SuppressWarnings("rawtypes") 
@@ -18,13 +19,18 @@ public class Inspector {
 		String[] classNameDetails = getClassNameDetails(c);
 		
 		//TODO check if object received is an array and handle accordingly
-		System.out.println("Inspecting " + (classNameDetails[0].compareTo("0") == 0 ? "Non-array" : classNameDetails[0] + "D") + " object: ");
+		System.out.println("Inspecting " + (classNameDetails[0].compareTo("0") == 0 ? "non-array" : classNameDetails[0] + "D") + " object: ");
 		System.out.println("\t" + classNameDetails[1]);
 		System.out.println();
 		
 		inspectSuperclass(c);
 		inspectInterfaces(c);
-		inspectMethods(c);
+		
+		System.out.println("Class Methods:");
+		inspectMethods(c, "\t");
+		
+		System.out.println("Inherited Methods:");
+		inspectInheritedMethods(c);
 	}
 	
 	/**
@@ -60,8 +66,11 @@ public class Inspector {
 	}
 	
 	/**
+	 * inspectSuperclass takes in an object of type Class and prints the Class' immediate superclass to system.out.
 	 * 
-	 * @param c
+	 * If the Class has no superclass, a message indicating as such is written to system.out.
+	 * 
+	 * @param c the class being inspected
 	 */
 	public void inspectSuperclass(Class c)
 	{
@@ -81,8 +90,11 @@ public class Inspector {
 	}
 	
 	/**
+	 *  inspectInterfaces takes in an object of type Class and prints the Class' interfaces to system.out
+	 *  
+	 *  If the class does not implement any interfaces, a message indicating as such is writtent o system.out
 	 * 
-	 * @param c
+	 * @param c the class being inspected
 	 */
 	public void inspectInterfaces(Class c)
 	{
@@ -101,21 +113,29 @@ public class Inspector {
 	}
 	
 	/**
-	 * 
-	 * @param c
-	 * @param interfaces
+	 * getAllSuperclasses takes in a Class and a Class Vector and recursively fills the Vector with all superclasses
+	 * of the given Class object.
+	 *  
+	 * @param c the Class being inspected
+	 * @param superclasses the Superclasses of the given Class
 	 */
-	public void getAllSuperClasses(Class c, Vector<Class> superclasses)
+	public void getAllSuperclasses(Class c, Vector<Class> superclasses)
 	{
 		Class superclass = c.getSuperclass();
 		if (superclass != null)
 		{
 			superclasses.addElement(superclass);
-			getAllSuperClasses(superclass, superclasses);
+			getAllSuperclasses(superclass, superclasses);
 		}
 	}
 	
-	public void inspectMethods(Class c)
+	/**
+	 * inspectMethods prints all declared methods of a given Class to system.out in the form:<p>
+	 * [modifier1] [modifier2] ... [returnType] [methodName] ([parameter1], [parameter2]...) throws Exception1, Exception2 ... \r\n
+	 * 
+	 * @param c
+	 */
+	public void inspectMethods(Class c, String delimiter)
 	{
 		Method[] methods = c.getDeclaredMethods();
 		int i, j, k,
@@ -126,9 +146,8 @@ public class Inspector {
 			exceptionTypes;
 		Class returnType;
 		
-		System.out.println("Class Methods:");
 		if(methods.length == 0)
-			System.out.println("\tNo directly implemented methods");
+			System.out.println("\tNo implemented methods");
 		else
 		{
 			for(i = 0; i < methods.length; i++)
@@ -140,7 +159,7 @@ public class Inspector {
 				exceptionTypes = methods[i].getExceptionTypes();
 				returnType = methods[i].getReturnType();
 				
-				System.out.print("\t" + readableModifiers + " " + returnType.getName() + " " + methodName + "(");
+				System.out.print(delimiter + readableModifiers + " " + returnType.getName() + " " + methodName + "(");
 				
 				if (parameterTypes.length > 0)
 				{
@@ -162,6 +181,29 @@ public class Inspector {
 					System.out.println();
 			}
 		}
+		
+		System.out.println();
+	}
+	
+	public void inspectInheritedMethods(Class c)
+	{
+		Vector<Class> superclasses = new Vector<Class>();
+		getAllSuperclasses(c, superclasses);
+		Class curClass;
+		String delimiter = "";
+		
+		if (superclasses.size() > 0)
+		{
+			for(Iterator i = superclasses.iterator(); i.hasNext();)
+			{
+				curClass = (Class)i.next();
+				System.out.println(delimiter + "Superclass: " + curClass.getName());
+				
+				delimiter += "\t";
+				inspectMethods(curClass, delimiter);		
+			}
+		}else
+			System.out.println("Class does not have superclass. No inherited methods.");
 		
 		System.out.println();
 	}

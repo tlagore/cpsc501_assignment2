@@ -84,11 +84,10 @@ public class Inspector_Tests {
 	public void testInspectMethods()
 	{
 		Inspector inspector = new Inspector();
-		inspector.inspectMethods(((Object)new ClassA()).getClass());
+		inspector.inspectMethods(((Object)new ClassA()).getClass(), "\t");
 		
 		/*getDeclaredMethods() appears to sometimes return functions in different orders
 		so instead of checking exact order of methods, we just ensure that each method exists */
-		assertEquals(outContent.toString().contains("Class Methods:\r\n"), true);
 		assertEquals(outContent.toString().contains("\tpublic void run()\r\n"), true);
 		assertEquals(outContent.toString().contains("\tpublic java.lang.String toString()\r\n"), true);
 		assertEquals(outContent.toString().contains("\tpublic void setVal(int) throws java.lang.Exception\r\n"), true);
@@ -96,10 +95,33 @@ public class Inspector_Tests {
 		assertEquals(outContent.toString().contains("\tprivate void printSomething()\r\n"), true);
 		outContent.reset();
 		
-		inspector.inspectMethods(((Object)new ClassD()).getClass());
-		assertEquals(outContent.toString().contains("Class Methods:\r\n"), true);
+		inspector.inspectMethods(((Object)new ClassD()).getClass(), "\t");
 		assertEquals(outContent.toString().contains("\tpublic java.lang.String toString()\r\n"), true);
 		assertEquals(outContent.toString().contains("\tpublic int getVal3()\r\n"), true);
+	}
+	
+	@Test
+	public void testInspectInheritedMethods()
+	{
+		Inspector inspector = new Inspector();
+		inspector.inspectInheritedMethods(((Object)new ClassA()).getClass());
+		
+		//both tests below inherit from type Object, so different methods from the Object class are tested.
+		
+		/*getDeclaredMethods() appears to sometimes return functions in different orders
+		so instead of checking exact order of methods, we just ensure that each method exists */
+		assertEquals(outContent.toString().contains("\tpublic boolean equals(java.lang.Object)\r\n"), true);
+		assertEquals(outContent.toString().contains("\tpublic java.lang.String toString()\r\n"), true);
+		assertEquals(outContent.toString().contains("\tpublic native int hashCode()\r\n"), true);
+		assertEquals(outContent.toString().contains("\tprotected native java.lang.Object clone() throws java.lang.CloneNotSupportedException\r\n"), true);
+		outContent.reset();
+		
+		inspector.inspectInheritedMethods(((Object)new ClassD()).getClass());
+		assertEquals(outContent.toString().contains("\tprotected native java.lang.Object clone() throws java.lang.CloneNotSupportedException\r\n"), true);
+		assertEquals(outContent.toString().contains("\tpublic final native void notify()\r\n"), true);
+		assertEquals(outContent.toString().contains("\tpublic final native void notifyAll()\r\n"), true);
+		assertEquals(outContent.toString().contains("\tprivate static native void registerNatives()\r\n"), true);
+		outContent.reset();
 	}
 
 }
