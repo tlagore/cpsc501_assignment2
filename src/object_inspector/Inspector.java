@@ -49,7 +49,7 @@ public class Inspector {
 		inspectInheritedElements(obj, "inspectConstructors");
 		
 		System.out.println("Fields:");
-		inspectFields(obj, DELIMITER);
+		inspectFields(obj, obj.getClass(), DELIMITER);
 	}
 	
 	/**
@@ -246,20 +246,26 @@ public class Inspector {
 	 * inspectFields takes in a class and a delimiter and writes all the fields of Class to system.out along with their variables.<p>
 	 * If inspect() was called with recursive set to true, it will also explore any objects found by traversing those objects as well.
 	 * 
-	 * @param c The class being inspected
+	 * @param obj The base level object being inspected
+	 * @param c The current class being inspected
 	 * @param delimiter prefixes each field (can be empty)
 	 */
-	public void inspectFields(Object obj, String delimiter)
+	public void inspectFields(Object obj, Class c, String delimiter)
 	{
-		Class c = obj.getClass();
 		Field[] fields = c.getDeclaredFields();
 		String[] fieldDetails;
+		int modifiers;
+		Object oValue;
 		int i;
 		
 		for(i = 0; i < fields.length; i++)
 		{
 			System.out.print(delimiter);
+			
+			//get modifiers before setting accessible to true
+			
 			fieldDetails = getClassNameDetails(fields[i].getType());
+			
 			//fieldDetails[0] indicates the dimensions of the array. If it is a 0D array, it is just an element.
 			if(fieldDetails[0].compareTo("0") != 0)
 			{
@@ -273,8 +279,18 @@ public class Inspector {
 					listRawFieldContents(obj, fields[i]);
 				}else
 				{
-					//not primitive and _Recursive is true
-					
+					try{
+						modifiers = fields[i].getModifiers();
+						fields[i].setAccessible(true);
+						oValue = fields[i].get(obj);
+						System.out.println(Modifier.toString(modifiers) + " " + fields[i].getType().getName() + " = " + (oValue == null ? "null" : ""));
+						if(oValue != null)
+							inspectFields(oValue, fields[i].getType(), delimiter + DELIMITER);
+
+					}catch(IllegalAccessException ex)
+					{
+						System.out.println("Cannot access field. Illegal Access. " + ex.getMessage());
+					}
 				}
 			}
 		}
@@ -285,9 +301,12 @@ public class Inspector {
 	{
 		String value = "";
 		Object oValue;
-		field.setAccessible(true);
+		//get modifiers before setting accessible to true
+		int modifiers = field.getModifiers();
+		
 		try
 		{
+			field.setAccessible(true);
 			oValue = field.get(obj);
 			if (oValue != null)
 			{
@@ -296,9 +315,9 @@ public class Inspector {
 				else
 					value = String.valueOf(field.get(obj).hashCode());
 			}else
-				value = "uninitialized";
-			String str = Modifier.toString(field.getType().getModifiers());
-			System.out.println(str + " " + field.getType().getName() + " = " + value.toString());
+				value = "null";
+
+			System.out.println(Modifier.toString(modifiers) + " " + field.getType().getName() + " = " + value.toString());
 		}catch(IllegalAccessException ex)
 		{
 			System.out.println("Cannot access field. Illegal Access. " + ex.getMessage());
