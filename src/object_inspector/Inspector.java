@@ -27,24 +27,6 @@ public class Inspector {
 	{
 		_Recursive = recursive;
 		inspectObject(obj, "");
-		
-//		inspectSuperclass(c);
-//		inspectInterfaces(c);
-//		
-//		System.out.println("Declared Class Methods:");
-//		inspectMethods(c, DELIMITER);
-//		
-//		System.out.println("Inherited Methods:");
-//		inspectInheritedElements(obj, "inspectMethods");
-//
-//		System.out.println("Declared Constructors:");
-//		inspectConstructors(c, DELIMITER);
-//		
-//		System.out.println("Inherited Constructors:");
-//		inspectInheritedElements(obj, "inspectConstructors");
-//		
-//		System.out.println("Fields:");
-//		inspectFields(obj, obj.getClass(), DELIMITER);
 	}
 	
 	public void inspectObject(Object obj, String delimiter)

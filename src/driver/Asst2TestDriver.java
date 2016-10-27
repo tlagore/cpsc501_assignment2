@@ -82,7 +82,7 @@ public class Asst2TestDriver
     	ClassB[][] c = null;
     	
     	try{
-    		c = new ClassB[2][2];
+    		c = new ClassB[][] { { null, new ClassB() }, { new ClassB(), null } };
     	}catch(Exception ex)
     	{
     		System.out.println(ex.getMessage());
