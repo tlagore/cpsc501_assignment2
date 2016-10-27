@@ -15,9 +15,13 @@ public class Inspector {
 		
 	}
 	
+	/**
+	 * 
+	 * @param obj
+	 * @param recursive
+	 */
 	public void inspect(Object obj, boolean recursive)
 	{
-		Vector<Class> interfaces = new Vector<Class>();
 		Class c = obj.getClass();
 		String[] classNameDetails = getClassNameDetails(c);
 		
@@ -155,63 +159,33 @@ public class Inspector {
 		{
 			for(i = 0; i < methods.length; i++)
 			{			
-				//System.out.print(delimiter);
+				System.out.print(delimiter);
 				writeMethod(methods[i].getModifiers(),
 						methods[i].getReturnType().getName(),
 						methods[i].getName(),
 						methods[i].getParameterTypes(),
-						methods[i].getExceptionTypes(),
-						delimiter);
+						methods[i].getExceptionTypes());
 			}
 		}
 		
 		System.out.println();
-//				modifiers = methods[i].getModifiers();
-//				readableModifiers = Modifier.toString(modifiers);
-//				methodName = methods[i].getName();
-//				parameterTypes = methods[i].getParameterTypes();
-//				exceptionTypes = methods[i].getExceptionTypes();
-//				returnType = methods[i].getReturnType();
-//				
-//				System.out.print(delimiter + readableModifiers + " " + returnType.getName() + " " + methodName + "(");
-//				
-//				if (parameterTypes.length > 0)
-//				{
-//					for(j = 0; j < parameterTypes.length - 1; j++)
-//						System.out.print(parameterTypes[j].getName() +", ");
-//					
-//					System.out.print(parameterTypes[j].getName() + ")");
-//				}else
-//					System.out.print(")");
-//				
-//				if(exceptionTypes.length > 0)
-//				{
-//					System.out.print(" throws ");
-//					for(k = 0; k < exceptionTypes.length - 1; k++)
-//						System.out.print(exceptionTypes[k].getName() + ", ");
-//					
-//					System.out.println(exceptionTypes[k].getName());
-//				}else
-//					System.out.println();
-//			}
 	}
 	
 	
 	/**
+	 * writeMethod takes the different elements of a Method and/or Constructor and writes the components in human readable format
 	 * 
-	 * @param modifiers
-	 * @param returnType
-	 * @param methodName
-	 * @param parameterTypes
-	 * @param exceptionTypes
-	 * @param delimiter
+	 * @param modifiers int representation of the modifiers of the method
+	 * @param returnType String representation of the returnType
+	 * @param methodName String representation of the methodName
+	 * @param parameterTypes a Class[] of the parameter types
+	 * @param exceptionTypes a Class[] of the exceptions thrown
 	 */
-	public void writeMethod(int modifiers, String returnType, String methodName, Class[] parameterTypes, Class[] exceptionTypes, String delimiter)
+	public void writeMethod(int modifiers, String returnType, String methodName, Class[] parameterTypes, Class[] exceptionTypes)
 	{
 		String readableModifiers = Modifier.toString(modifiers);
 		int j, k;
-		
-		System.out.print(delimiter);
+
 		//write method modifiers, return type, and method name
 		System.out.print(readableModifiers + (returnType == "" ? " " : (" " + returnType + " ")) + methodName + "(");
 		
@@ -238,9 +212,11 @@ public class Inspector {
 	}
 	
 	/**
+	 * inspectConstructors takes in a class and a delimiter and writes all the constructors of the Class to System.out
+	 * prefixed by the specified delimiter.
 	 * 
-	 * @param c
-	 * @param delimiter
+	 * @param c the Class to inspect
+	 * @param delimiter prefixes each constructor (can be empty)
 	 */
 	public void inspectConstructors(Class c, String delimiter)
 	{
@@ -249,18 +225,27 @@ public class Inspector {
 		
 		for (i = 0; i < constructors.length; i++)
 		{
+			System.out.print(delimiter);
 			writeMethod(constructors[i].getModifiers(),
 					"",
 					constructors[i].getName(),
 					constructors[i].getParameterTypes(),
-					constructors[i].getExceptionTypes(),
-					delimiter);
+					constructors[i].getExceptionTypes());
 		}
 		
 		System.out.println();
 	}
 	
-	
+	/**
+	 * getMethod returns a method from "this" class, referenced by name and a Class[] of the parameter types<p>
+	 * Example: public void myMethod(String str, Integer i) equates to:<p>
+	 *  methodName="str"<p>
+	 *  params = new Class[]{String.class, Integer.class};
+	 * 
+	 * @param methodName the name of the method to be retrieved
+	 * @param params a list of the parameters matching the methods signature, in order
+	 * @return the Method object representation of the requested Method or null if not found.
+	 */
 	public Method getMethod(String methodName, Class[] params)
 	{
 		Method method = null;
@@ -274,6 +259,14 @@ public class Inspector {
 		return method;
 	}
 	
+	/**
+	 * inspectInheritedElements inspects all inheritedElements for a particular object by traversing the superclass hierarchy<p>
+	 * It takes in a methodName which it will call for every superclass of the supplied object<p>
+	 * the methodName that is passed into the function is expected to have the form methodName(Class, String)
+	 * 
+	 * @param obj The instantiation of the Class that is intended to inspect the hierarchy of
+	 * @param methodName The name of the method that will be called on each superclass Class.
+	 */
 	public void inspectInheritedElements(Object obj, String methodName)
 	{
 		Class c = obj.getClass();
