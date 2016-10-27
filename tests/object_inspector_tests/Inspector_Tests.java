@@ -1,5 +1,7 @@
 package object_inspector_tests;
 
+
+import driver.*;
 import static org.junit.Assert.*;
 
 import java.io.ByteArrayOutputStream;
@@ -66,13 +68,38 @@ public class Inspector_Tests {
 	public void testInspectSuperclass()
 	{
 		Inspector inspector = new Inspector();
-		inspector.inspectSuperclass((new String[1][1]).getClass());
-		assertEquals("Superclass: java.lang.Object\r\n", outContent.toString());
 		
+		//test1
+		inspector.inspectSuperclass((new String[1][1]).getClass());
+		assertEquals("Superclass:\r\n\tjava.lang.Object\r\n\r\n", outContent.toString());		
 		outContent.reset();
+		
+		//test2
 		inspector.inspectSuperclass((new String("Hello")).getClass());
-		String out = outContent.toString();
-		assertEquals("Superclass: java.lang.Object\r\n", outContent.toString());
+		assertEquals("Superclass:\r\n\tjava.lang.Object\r\n\r\n", outContent.toString());
+		outContent.reset();
+	}
+	
+	@Test
+	public void testInspectMethods()
+	{
+		Inspector inspector = new Inspector();
+		inspector.inspectMethods(((Object)new ClassA()).getClass());
+		
+		/*getDeclaredMethods() appears to sometimes return functions in different orders
+		so instead of checking exact order of methods, we just ensure that each method exists */
+		assertEquals(outContent.toString().contains("Class Methods:\r\n"), true);
+		assertEquals(outContent.toString().contains("\tpublic void run()\r\n"), true);
+		assertEquals(outContent.toString().contains("\tpublic java.lang.String toString()\r\n"), true);
+		assertEquals(outContent.toString().contains("\tpublic void setVal(int) throws java.lang.Exception\r\n"), true);
+		assertEquals(outContent.toString().contains("\tpublic int getVal()\r\n"), true);
+		assertEquals(outContent.toString().contains("\tprivate void printSomething()\r\n"), true);
+		outContent.reset();
+		
+		inspector.inspectMethods(((Object)new ClassD()).getClass());
+		assertEquals(outContent.toString().contains("Class Methods:\r\n"), true);
+		assertEquals(outContent.toString().contains("\tpublic java.lang.String toString()\r\n"), true);
+		assertEquals(outContent.toString().contains("\tpublic int getVal3()\r\n"), true);
 	}
 
 }

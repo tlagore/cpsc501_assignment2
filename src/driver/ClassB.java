@@ -1,4 +1,5 @@
 package driver;
+
 public class ClassB extends ClassC implements Runnable
 {
     public ClassB() throws Exception
@@ -8,7 +9,7 @@ public class ClassB extends ClassC implements Runnable
 
     public void run() { }
 
-    public String toString() { return "ClassB"; }
+    public String toString() { return "ClassB"; } 
 
     public void func3(int a)
     {
