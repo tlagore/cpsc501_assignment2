@@ -1,5 +1,6 @@
 package object_inspector;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -24,32 +25,87 @@ public class Inspector {
 	 */
 	public void inspect(Object obj, boolean recursive)
 	{
-		Class c = obj.getClass();
-		String[] classNameDetails = getClassNameDetails(c);
 		_Recursive = recursive;
+		inspectObject(obj, "");
+		
+//		inspectSuperclass(c);
+//		inspectInterfaces(c);
+//		
+//		System.out.println("Declared Class Methods:");
+//		inspectMethods(c, DELIMITER);
+//		
+//		System.out.println("Inherited Methods:");
+//		inspectInheritedElements(obj, "inspectMethods");
+//
+//		System.out.println("Declared Constructors:");
+//		inspectConstructors(c, DELIMITER);
+//		
+//		System.out.println("Inherited Constructors:");
+//		inspectInheritedElements(obj, "inspectConstructors");
+//		
+//		System.out.println("Fields:");
+//		inspectFields(obj, obj.getClass(), DELIMITER);
+	}
+	
+	public void inspectObject(Object obj, String delimiter)
+	{
+		Class c = obj.getClass();
+		Object nextArrObj;
+		String[] classNameDetails = getClassNameDetails(c);
+		int length,
+			i;		
 		
 		//TODO check if object received is an array and handle accordingly
-		System.out.println("Inspecting " + (classNameDetails[0].compareTo("0") == 0 ? "non-array" : classNameDetails[0] + "D") + " object: ");
-		System.out.println(DELIMITER + classNameDetails[1]);
+		System.out.println(delimiter + "Inspecting " + (classNameDetails[0].compareTo("0") == 0 ? "non-array" : classNameDetails[0] + "D") + " object: ");
+		delimiter += DELIMITER;
+		System.out.println(delimiter + classNameDetails[1]);
 		System.out.println();
 		
-		inspectSuperclass(c);
-		inspectInterfaces(c);
+		if(c.isArray())
+		{
+			//handle array
+			try{
+				length = Array.getLength(obj);
+				for(i = 0; i < length; i++)
+				{
+					System.out.println(delimiter + "Element " + i);
+					nextArrObj = Array.get(obj,i);
+					if (nextArrObj != null)
+						inspectObject(Array.get(obj, i), delimiter + DELIMITER);	
+					else
+						System.out.println(delimiter + delimiter + "null");
+				}
+			}catch(Exception ex)
+			{
+				System.out.println(ex.getMessage());
+			}
+		}else
+		{
+			inspectNonArrayObject(obj, delimiter);
+		}
+	}
+	
+	public void inspectNonArrayObject(Object obj, String delimiter)
+	{
+		Class c = obj.getClass();
 		
-		System.out.println("Declared Class Methods:");
-		inspectMethods(c, DELIMITER);
+		inspectSuperclass(c, delimiter);
+		inspectInterfaces(c, delimiter);
 		
-		System.out.println("Inherited Methods:");
-		inspectInheritedElements(obj, "inspectMethods");
+		System.out.println(delimiter + "Declared Class Methods:");
+		inspectMethods(c, delimiter);
+		
+		System.out.println(delimiter + "Inherited Methods:");
+		inspectInheritedElements(obj, "inspectMethods", delimiter);
 
-		System.out.println("Declared Constructors:");
-		inspectConstructors(c, DELIMITER);
+		System.out.println(delimiter + "Declared Constructors:");
+		inspectConstructors(c, delimiter);
 		
-		System.out.println("Inherited Constructors:");
-		inspectInheritedElements(obj, "inspectConstructors");
+		System.out.println(delimiter + "Inherited Constructors:");
+		inspectInheritedElements(obj, "inspectConstructors", delimiter);
 		
-		System.out.println("Fields:");
-		inspectFields(obj, obj.getClass(), DELIMITER);
+		System.out.println(delimiter + "Fields:");
+		inspectFields(obj, obj.getClass(), delimiter);
 	}
 	
 	/**
@@ -91,7 +147,7 @@ public class Inspector {
 	 * 
 	 * @param c the class being inspected
 	 */
-	public void inspectSuperclass(Class c)
+	public void inspectSuperclass(Class c, String delimiter)
 	{
 		Class superclassObject = c.getSuperclass();
 		String superclassName;
@@ -100,10 +156,11 @@ public class Inspector {
 		if (superclassObject != null)
 		{
 			superclassName = superclassObject.getName();
-			System.out.println("Superclass:");
-			System.out.println(DELIMITER + superclassName);
+			System.out.println(delimiter + "Superclass:");
+			delimiter += DELIMITER;
+			System.out.println(delimiter + superclassName);
 		}else
-			System.out.println(DELIMITER + "Class does not have a superclass.");
+			System.out.println(delimiter + "Class does not have a superclass.");
 		
 		System.out.println();
 	}
@@ -115,18 +172,19 @@ public class Inspector {
 	 * 
 	 * @param c the class being inspected
 	 */
-	public void inspectInterfaces(Class c)
+	public void inspectInterfaces(Class c, String delimiter)
 	{
 		Class[] curInterfaces = c.getInterfaces();
-		System.out.println("Interfaces Implemented: ");
+		System.out.println(delimiter + "Interfaces Implemented: ");
+		delimiter += DELIMITER;
 		if (curInterfaces.length > 0)
 		{
 			for(int i = 0; i < curInterfaces.length; i ++)
 			{
-				System.out.println(DELIMITER + curInterfaces[i]);
+				System.out.println(delimiter + curInterfaces[i]);
 			}
 		}else
-			System.out.println(DELIMITER + "None implemented.");
+			System.out.println(delimiter + "None implemented.");
 		
 		System.out.println();
 	}
@@ -393,12 +451,11 @@ public class Inspector {
 	 * @param obj The instantiation of the Class that is intended to inspect the hierarchy of
 	 * @param methodName The name of the method that will be called on each superclass Class.
 	 */
-	public void inspectInheritedElements(Object obj, String methodName)
+	public void inspectInheritedElements(Object obj, String methodName, String delimiter)
 	{
 		Class c = obj.getClass();
 		Vector<Class> superclasses = new Vector<Class>();		
 		Class curClass;
-		String delimiter = "";
 		Method method = getMethod(methodName, new Class[]{Class.class, String.class});
 		
 		getAllSuperclasses(c, superclasses);

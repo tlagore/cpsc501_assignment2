@@ -79,16 +79,16 @@ public class Asst2TestDriver
 //    	insps.inspect(true, true);
     	
     	object_inspector.Inspector insp = new object_inspector.Inspector();
-    	ClassB c = null;
+    	ClassB[][] c = null;
     	
     	try{
-    		c = new ClassB();
+    		c = new ClassB[2][2];
     	}catch(Exception ex)
     	{
-    		
+    		System.out.println(ex.getMessage());
     	}
     	
-    	insp.inspect(c, true);
+    	insp.inspect(c, false);
     	
 //	boolean rec=true;
 //

@@ -73,17 +73,17 @@ public class Inspector_Tests {
 		Inspector inspector = new Inspector();
 		
 		//test1
-		inspector.inspectSuperclass((new String[1][1]).getClass());
+		inspector.inspectSuperclass((new String[1][1]).getClass(), "");
 		assertEquals(outContent.toString().contains("java.lang.Object"), true);		
 		outContent.reset();
 		
 		//test2
-		inspector.inspectSuperclass((new String("Hello")).getClass());
+		inspector.inspectSuperclass((new String("Hello")).getClass(), "");
 		assertEquals(outContent.toString().contains("java.lang.Object"), true);
 		outContent.reset();
 		
 		//test3
-		inspector.inspectSuperclass(new MyClassB().getClass());
+		inspector.inspectSuperclass(new MyClassB().getClass(), "");
 		assertEquals(outContent.toString().contains("MyClassA"), true);
 		outContent.reset();
 	}
@@ -117,7 +117,7 @@ public class Inspector_Tests {
 	
 		/*getDeclaredMethods() appears to sometimes return functions in different orders
 		so instead of checking exact order of methods, we just ensure that each method exists */
-		inspector.inspectInheritedElements((Object)"Hello", "inspectMethods");
+		inspector.inspectInheritedElements((Object)"Hello", "inspectMethods", "");
 
 		assertEquals(outContent.toString().contains("public boolean equals(java.lang.Object)"), true);
 		assertEquals(outContent.toString().contains("public java.lang.String toString()"), true);
@@ -125,7 +125,7 @@ public class Inspector_Tests {
 		assertEquals(outContent.toString().contains("protected native java.lang.Object clone() throws java.lang.CloneNotSupportedException"), true);
 		outContent.reset();
 		
-		inspector.inspectInheritedElements((Object)new Integer(4), "inspectMethods");
+		inspector.inspectInheritedElements((Object)new Integer(4), "inspectMethods", "");
 		//java.lang.Number inheritance
 		assertEquals(outContent.toString().contains("public byte byteValue()"), true);
 		assertEquals(outContent.toString().contains("public short shortValue()"), true);
@@ -142,7 +142,7 @@ public class Inspector_Tests {
 		outContent.reset();
 		
 		//different method name passed to perform different functions, inspectConstructors
-		inspector.inspectInheritedElements((Object)new Integer(5), "inspectConstructors");
+		inspector.inspectInheritedElements((Object)new Integer(5), "inspectConstructors", "");
 		assertEquals(outContent.toString().contains("java.lang.Number"), true);
 		assertEquals(outContent.toString().contains("public java.lang.Number()"), true);
 		assertEquals(outContent.toString().contains("java.lang.Object"), true);
@@ -150,7 +150,7 @@ public class Inspector_Tests {
 		outContent.reset();
 		
 		//inspectConstructors
-		inspector.inspectInheritedElements((Object)new MyClassB(), "inspectConstructors");
+		inspector.inspectInheritedElements((Object)new MyClassB(), "inspectConstructors", "");
 		assertEquals(outContent.toString().contains("object_inspector.MyClassA"), true);
 		assertEquals(outContent.toString().contains("public object_inspector.MyClassA()"), true);
 		assertEquals(outContent.toString().contains("public object_inspector.MyClassA(int)"), true);
