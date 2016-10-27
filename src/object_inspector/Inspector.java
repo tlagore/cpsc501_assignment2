@@ -26,22 +26,48 @@ public class Inspector {
 	public void inspect(Object obj, boolean recursive)
 	{
 		_Recursive = recursive;
+		Class baseClass = getBaseClassType(obj.getClass()),
+				c = obj.getClass();
+		
+		String[] classNameDetails = getClassNameDetails(c);
+		
+		System.out.println("Inspecting " + (classNameDetails[0].compareTo("0") == 0 ? "non-array" : classNameDetails[0] + "D") + " object of type: ");
+		System.out.println(DELIMITER + classNameDetails[1]);
+		System.out.println();
+		
+		inspectSuperclass(baseClass, "");
+		inspectInterfaces(baseClass, "");
+		
+		System.out.println("Declared Class Methods:");
+		inspectMethods(baseClass, DELIMITER);
+		
+		System.out.println("Inherited Methods:");
+		inspectInheritedElements(obj, "inspectMethods", DELIMITER);
+
+		System.out.println("Declared Constructors:");
+		inspectConstructors(baseClass, DELIMITER);
+		
+		System.out.println("Inherited Constructors:");
+		inspectInheritedElements(obj, "inspectConstructors", DELIMITER);
+		
 		inspectObject(obj, "");
 	}
 	
 	public void inspectObject(Object obj, String delimiter)
 	{
 		Class c = obj.getClass();
+		Class objType;
 		Object nextArrObj;
 		String[] classNameDetails = getClassNameDetails(c);
 		int length,
 			i;		
 		
 		//TODO check if object received is an array and handle accordingly
-		System.out.println(delimiter + "Inspecting " + (classNameDetails[0].compareTo("0") == 0 ? "non-array" : classNameDetails[0] + "D") + " object: ");
+		System.out.println(delimiter + "Inspecting fields of " + (classNameDetails[0].compareTo("0") == 0 ? "non-array" : classNameDetails[0] + "D") + " object: ");
 		delimiter += DELIMITER;
 		System.out.println(delimiter + classNameDetails[1]);
-		System.out.println();
+		
+		objType = c.isArray() ? c.getComponentType() : c;
 		
 		if(c.isArray())
 		{
@@ -63,28 +89,37 @@ public class Inspector {
 			}
 		}else
 		{
-			inspectNonArrayObject(obj, delimiter);
+			inspectNonArrayObject(obj, delimiter + DELIMITER);
 		}
+	}
+	
+	public Class getBaseClassType(Class c)
+	{
+		if (c.isArray())
+		{
+			c = getBaseClassType(c.getComponentType());
+		}
+		return c;
 	}
 	
 	public void inspectNonArrayObject(Object obj, String delimiter)
 	{
 		Class c = obj.getClass();
 		
-		inspectSuperclass(c, delimiter);
-		inspectInterfaces(c, delimiter);
-		
-		System.out.println(delimiter + "Declared Class Methods:");
-		inspectMethods(c, delimiter);
-		
-		System.out.println(delimiter + "Inherited Methods:");
-		inspectInheritedElements(obj, "inspectMethods", delimiter);
-
-		System.out.println(delimiter + "Declared Constructors:");
-		inspectConstructors(c, delimiter);
-		
-		System.out.println(delimiter + "Inherited Constructors:");
-		inspectInheritedElements(obj, "inspectConstructors", delimiter);
+//		inspectSuperclass(c, delimiter);
+//		inspectInterfaces(c, delimiter);
+//		
+//		System.out.println(delimiter + "Declared Class Methods:");
+//		inspectMethods(c, delimiter);
+//		
+//		System.out.println(delimiter + "Inherited Methods:");
+//		inspectInheritedElements(obj, "inspectMethods", delimiter);
+//
+//		System.out.println(delimiter + "Declared Constructors:");
+//		inspectConstructors(c, delimiter);
+//		
+//		System.out.println(delimiter + "Inherited Constructors:");
+//		inspectInheritedElements(obj, "inspectConstructors", delimiter);
 		
 		System.out.println(delimiter + "Fields:");
 		inspectFields(obj, obj.getClass(), delimiter);
@@ -435,7 +470,7 @@ public class Inspector {
 	 */
 	public void inspectInheritedElements(Object obj, String methodName, String delimiter)
 	{
-		Class c = obj.getClass();
+		Class c = this.getBaseClassType(obj.getClass());
 		Vector<Class> superclasses = new Vector<Class>();		
 		Class curClass;
 		Method method = getMethod(methodName, new Class[]{Class.class, String.class});
