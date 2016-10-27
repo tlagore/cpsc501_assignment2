@@ -1,6 +1,7 @@
 package object_inspector;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Iterator;
@@ -9,10 +10,11 @@ import java.util.Vector;
 @SuppressWarnings("rawtypes") 
 public class Inspector {
 	private final String DELIMITER = "   ";
+	private boolean _Recursive;
 	
 	public Inspector()
 	{
-		
+		_Recursive = false;
 	}
 	
 	/**
@@ -24,6 +26,7 @@ public class Inspector {
 	{
 		Class c = obj.getClass();
 		String[] classNameDetails = getClassNameDetails(c);
+		_Recursive = recursive;
 		
 		//TODO check if object received is an array and handle accordingly
 		System.out.println("Inspecting " + (classNameDetails[0].compareTo("0") == 0 ? "non-array" : classNameDetails[0] + "D") + " object: ");
@@ -44,6 +47,9 @@ public class Inspector {
 		
 		System.out.println("Inherited Constructors:");
 		inspectInheritedElements(obj, "inspectConstructors");
+		
+		System.out.println("Fields:");
+		inspectFields(obj, DELIMITER);
 	}
 	
 	/**
@@ -237,6 +243,107 @@ public class Inspector {
 	}
 	
 	/**
+	 * inspectFields takes in a class and a delimiter and writes all the fields of Class to system.out along with their variables.<p>
+	 * If inspect() was called with recursive set to true, it will also explore any objects found by traversing those objects as well.
+	 * 
+	 * @param c The class being inspected
+	 * @param delimiter prefixes each field (can be empty)
+	 */
+	public void inspectFields(Object obj, String delimiter)
+	{
+		Class c = obj.getClass();
+		Field[] fields = c.getDeclaredFields();
+		String[] fieldDetails;
+		int i;
+		
+		for(i = 0; i < fields.length; i++)
+		{
+			System.out.print(delimiter);
+			fieldDetails = getClassNameDetails(fields[i].getType());
+			//fieldDetails[0] indicates the dimensions of the array. If it is a 0D array, it is just an element.
+			if(fieldDetails[0].compareTo("0") != 0)
+			{
+				//handle array
+			}else
+			{
+				if(fields[i].getType().isPrimitive() || !_Recursive)
+				{
+					//handle primitive or just list object contents
+					listRawFieldContents(obj, fields[i]);
+				}else
+				{
+					//not primitive and _Recursive is true
+					
+				}
+			}
+		}
+	}
+	
+	//TODO implement
+	public void listRawFieldContents(Object obj, Field field)
+	{
+		String value = "";
+		Object oValue;
+		field.setAccessible(true);
+		try
+		{
+			oValue = field.get(obj);
+			if (field.getType().isPrimitive())
+				value = getPrimitiveObjectValue(obj, field);
+			else
+			{
+				if(oValue != null)
+					value = String.valueOf(field.get(obj).hashCode());
+				else
+					value = "null";
+			}
+			
+			System.out.println(Modifier.toString(field.getType().getModifiers()) + " " + field.getType().getName() + " = " + value.toString());
+		}catch(IllegalAccessException ex)
+		{
+			System.out.println("Cannot access field. Illegal Access. " + ex.getMessage());
+		}
+	}
+	
+	public String getPrimitiveObjectValue(Object obj, Field field)
+	{
+		String value = "";
+		try{
+			switch(field.getClass().getTypeName())
+			{
+				case "byte":
+					value = String.valueOf(field.getByte(obj));
+					break;
+				case "short":
+					value = String.valueOf(field.getShort(obj));
+					break;
+				case "int":
+					value = String.valueOf(field.getInt(obj));
+					break;
+				case "long":
+					value = String.valueOf(field.getLong(obj));
+					break;
+				case "float":
+					value = String.valueOf(field.getFloat(obj));
+					break;
+				case "double":
+					value = String.valueOf(field.getDouble(obj));
+					break;
+				case "boolean":
+					value = String.valueOf(field.getBoolean(obj));
+					break;
+				case "char":
+					value = String.valueOf(field.getChar(obj));
+					break;
+			}
+		}catch(IllegalAccessException ex)
+		{
+			
+		}
+		
+		return value;
+	}
+	/**
 	 * getMethod returns a method from "this" class, referenced by name and a Class[] of the parameter types<p>
 	 * Example: public void myMethod(String str, Integer i) equates to:<p>
 	 *  methodName="str"<p>
@@ -298,4 +405,5 @@ public class Inspector {
 		}else
 			System.out.println("Class does not have superclass. No inherited methods.");
 	}
+
 }

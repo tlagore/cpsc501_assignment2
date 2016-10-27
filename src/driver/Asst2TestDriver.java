@@ -79,8 +79,16 @@ public class Asst2TestDriver
 //    	insps.inspect(true, true);
     	
     	object_inspector.Inspector insp = new object_inspector.Inspector();
+    	ClassB c = null;
     	
-    	insp.inspect(new object_inspector.MyClassA(), false);
+    	try{
+    		c = new ClassB();
+    	}catch(Exception ex)
+    	{
+    		
+    	}
+    	
+    	insp.inspect(c, false);
     	
 //	boolean rec=true;
 //
