@@ -13,6 +13,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import object_inspector.Inspector;
+import object_inspector.MyClassA;
 
 public class Inspector_Tests {
 
@@ -84,7 +85,7 @@ public class Inspector_Tests {
 	public void testInspectMethods()
 	{
 		Inspector inspector = new Inspector();
-		inspector.inspectMethods(((Object)new ClassA()).getClass(), "\t");
+		inspector.inspectMethods(((Object)new MyClassA()).getClass(), "\t");
 		
 		/*getDeclaredMethods() appears to sometimes return functions in different orders
 		so instead of checking exact order of methods, we just ensure that each method exists */
@@ -104,7 +105,7 @@ public class Inspector_Tests {
 	public void testInspectInheritedMethods()
 	{
 		Inspector inspector = new Inspector();
-		inspector.inspectInheritedMethods(((Object)new ClassA()).getClass());
+		inspector.inspectInheritedMethods("Hello".getClass());
 		
 		//both tests below inherit from type Object, so different methods from the Object class are tested.
 		
@@ -116,12 +117,20 @@ public class Inspector_Tests {
 		assertEquals(outContent.toString().contains("\tprotected native java.lang.Object clone() throws java.lang.CloneNotSupportedException\r\n"), true);
 		outContent.reset();
 		
-		inspector.inspectInheritedMethods(((Object)new ClassD()).getClass());
-		assertEquals(outContent.toString().contains("\tprotected native java.lang.Object clone() throws java.lang.CloneNotSupportedException\r\n"), true);
-		assertEquals(outContent.toString().contains("\tpublic final native void notify()\r\n"), true);
-		assertEquals(outContent.toString().contains("\tpublic final native void notifyAll()\r\n"), true);
-		assertEquals(outContent.toString().contains("\tprivate static native void registerNatives()\r\n"), true);
+		inspector.inspectInheritedMethods(((Object)new Integer(4)).getClass());
+		//java.lang.Number inheritance
+		assertEquals(outContent.toString().contains("public byte byteValue()"), true);
+		assertEquals(outContent.toString().contains("public short shortValue()"), true);
+		assertEquals(outContent.toString().contains("public abstract int intValue()"), true);
+		assertEquals(outContent.toString().contains("public abstract long longValue()"), true);
+		assertEquals(outContent.toString().contains("public abstract float floatValue()"), true);
+		assertEquals(outContent.toString().contains("public abstract double doubleValue()"), true);
+		
+		//java.lang.Object inheritance
+		assertEquals(outContent.toString().contains("protected native java.lang.Object clone() throws java.lang.CloneNotSupportedException"), true);
+		assertEquals(outContent.toString().contains("public final native void notify()"), true);
+		assertEquals(outContent.toString().contains("public final native void notifyAll()"), true);
+		assertEquals(outContent.toString().contains("private static native void registerNatives()"), true);
 		outContent.reset();
 	}
-
 }

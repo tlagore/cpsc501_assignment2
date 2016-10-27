@@ -1,4 +1,4 @@
-package driver;
+package object_inspector;
 
 import java.io.IOException;
 
