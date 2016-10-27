@@ -20,5 +20,5 @@ public class ClassB extends ClassC implements Runnable
     private ClassA val2 = new ClassA(12);
     private ClassA val3;
     private ClassA[] val4;
-    private byte[] val5;
+    private byte val5;
 }

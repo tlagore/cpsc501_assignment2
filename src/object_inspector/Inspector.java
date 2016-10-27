@@ -264,6 +264,7 @@ public class Inspector {
 			if(fieldDetails[0].compareTo("0") != 0)
 			{
 				//handle array
+				System.out.println("Array encountered, skipping for now.");
 			}else
 			{
 				if(fields[i].getType().isPrimitive() || !_Recursive)
@@ -288,28 +289,27 @@ public class Inspector {
 		try
 		{
 			oValue = field.get(obj);
-			if (field.getType().isPrimitive())
-				value = getPrimitiveObjectValue(obj, field);
-			else
+			if (oValue != null)
 			{
-				if(oValue != null)
-					value = String.valueOf(field.get(obj).hashCode());
+				if (field.getType().isPrimitive())
+					value = getPrimitiveObjectValue(obj, field);
 				else
-					value = "null";
-			}
-			
-			System.out.println(Modifier.toString(field.getType().getModifiers()) + " " + field.getType().getName() + " = " + value.toString());
+					value = String.valueOf(field.get(obj).hashCode());
+			}else
+				value = "uninitialized";
+			String str = Modifier.toString(field.getType().getModifiers());
+			System.out.println(str + " " + field.getType().getName() + " = " + value.toString());
 		}catch(IllegalAccessException ex)
 		{
 			System.out.println("Cannot access field. Illegal Access. " + ex.getMessage());
 		}
 	}
 	
-	public String getPrimitiveObjectValue(Object obj, Field field)
+	public String getPrimitiveObjectValue(Object obj, Field field) throws IllegalAccessException
 	{
 		String value = "";
 		try{
-			switch(field.getClass().getTypeName())
+			switch(field.getType().getName())
 			{
 				case "byte":
 					value = String.valueOf(field.getByte(obj));
@@ -338,7 +338,7 @@ public class Inspector {
 			}
 		}catch(IllegalAccessException ex)
 		{
-			
+			throw ex;
 		}
 		
 		return value;
