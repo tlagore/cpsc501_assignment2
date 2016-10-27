@@ -1,5 +1,6 @@
 package object_inspector;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Iterator;
@@ -26,11 +27,20 @@ public class Inspector {
 		inspectSuperclass(c);
 		inspectInterfaces(c);
 		
-		System.out.println("Class Methods:");
+		System.out.println("Declared Class Methods:");
 		inspectMethods(c, "\t");
 		
 		System.out.println("Inherited Methods:");
-		inspectInheritedMethods(c);
+		inspectInheritedElements(obj, "inspectMethods");
+
+		System.out.println("Declared Constructors:");
+		inspectConstructors(c, "\t");
+		
+		System.out.println("Inherited Constructors:");
+		inspectInheritedConstructors(c);
+		
+//		System.out.println("Inherited Constructors:");
+//		inspectInheritedElements(obj, "inspectConstructors");
 	}
 	
 	/**
@@ -185,7 +195,52 @@ public class Inspector {
 		System.out.println();
 	}
 	
-	public void inspectInheritedMethods(Class c)
+	public void inspectConstructors(Class c, String delimiter)
+	{
+		Constructor[] constructors = c.getDeclaredConstructors();
+		int modifiers;
+		String readableModifiers;
+		Class[] parameterTypes,
+			exceptionTypes;
+		
+		int i, j, k;
+		
+		for (i = 0; i < constructors.length; i++)
+		{
+			modifiers = constructors[i].getModifiers();
+			readableModifiers = Modifier.toString(modifiers);			
+			parameterTypes = constructors[i].getParameterTypes();
+			exceptionTypes = constructors[i].getExceptionTypes();
+			
+			System.out.print(delimiter + readableModifiers + " " + c.getName() + "(");
+			if(parameterTypes.length > 0)
+			{
+				for(j = 0; j < parameterTypes.length - 1; j++)
+					System.out.print(parameterTypes[j].getName());
+				
+				System.out.print(parameterTypes[j].getName() + ")");
+			}else
+				System.out.print(")");
+			
+			if(exceptionTypes.length > 0)
+			{
+				System.out.print(" throws ");
+				for(k = 0; k < exceptionTypes.length - 1; k++)
+					System.out.print(exceptionTypes[k].getName() + ", ");
+				
+				System.out.println(exceptionTypes[k].getName());
+			}else
+				System.out.println();	
+		}
+		
+		System.out.println();
+	}
+	
+	/**
+	 * 
+	 * @param c
+	 */
+	public void inspectInheritedConstructors(Class c)
 	{
 		Vector<Class> superclasses = new Vector<Class>();
 		getAllSuperclasses(c, superclasses);
@@ -200,7 +255,55 @@ public class Inspector {
 				System.out.println(delimiter + "Superclass: " + curClass.getName());
 				
 				delimiter += "\t";
-				inspectMethods(curClass, delimiter);		
+				inspectConstructors(curClass, delimiter);		
+			}
+		}else
+			System.out.println("Class does not have superclass. No inherited methods.");
+		
+		System.out.println();
+	}
+	
+	public Method getMethod(String methodName, Class[] params)
+	{
+		Method method = null;
+		try{
+			method = this.getClass().getMethod(methodName, params);
+		}catch(NoSuchMethodException ex)
+		{
+			System.out.println(ex.getMessage());
+		}
+		
+		return method;
+	}
+	
+	public void inspectInheritedElements(Object obj, String methodName)
+	{
+		Class c = obj.getClass();
+		Vector<Class> superclasses = new Vector<Class>();		
+		Class curClass;
+		String delimiter = "";
+		Method method = getMethod(methodName, new Class[]{Class.class, String.class});
+		
+		getAllSuperclasses(c, superclasses);
+		
+		if (method == null)
+			return;
+		
+		if (superclasses.size() > 0)
+		{
+			for(Iterator i = superclasses.iterator(); i.hasNext();)
+			{
+				curClass = (Class)i.next();
+				System.out.println(delimiter + "Superclass: " + curClass.getName());
+				
+				delimiter += "\t";
+				try{
+					method.invoke(this, new Object[] {curClass, new String(delimiter) });
+					
+				}catch (Exception ex)
+				{
+					System.out.println(ex.getMessage());
+				}
 			}
 		}else
 			System.out.println("Class does not have superclass. No inherited methods.");

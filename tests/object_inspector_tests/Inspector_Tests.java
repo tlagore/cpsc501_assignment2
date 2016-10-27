@@ -14,6 +14,7 @@ import org.junit.Test;
 
 import object_inspector.Inspector;
 import object_inspector.MyClassA;
+import object_inspector.MyClassB;
 
 public class Inspector_Tests {
 
@@ -102,10 +103,10 @@ public class Inspector_Tests {
 	}
 	
 	@Test
-	public void testInspectInheritedMethods()
+	public void testInspectInheritedElements()
 	{
 		Inspector inspector = new Inspector();
-		inspector.inspectInheritedMethods("Hello".getClass());
+		inspector.inspectInheritedElements((Object)"Hello", "inspectMethods");
 		
 		//both tests below inherit from type Object, so different methods from the Object class are tested.
 		
@@ -117,7 +118,7 @@ public class Inspector_Tests {
 		assertEquals(outContent.toString().contains("\tprotected native java.lang.Object clone() throws java.lang.CloneNotSupportedException\r\n"), true);
 		outContent.reset();
 		
-		inspector.inspectInheritedMethods(((Object)new Integer(4)).getClass());
+		inspector.inspectInheritedElements((Object)new Integer(4), "inspectMethods");
 		//java.lang.Number inheritance
 		assertEquals(outContent.toString().contains("public byte byteValue()"), true);
 		assertEquals(outContent.toString().contains("public short shortValue()"), true);
@@ -131,6 +132,23 @@ public class Inspector_Tests {
 		assertEquals(outContent.toString().contains("public final native void notify()"), true);
 		assertEquals(outContent.toString().contains("public final native void notifyAll()"), true);
 		assertEquals(outContent.toString().contains("private static native void registerNatives()"), true);
+		outContent.reset();
+		
+		//different method name passed to perform different functions, inspectConstructors
+		inspector.inspectInheritedElements((Object)new Integer(5), "inspectConstructors");
+		assertEquals(outContent.toString().contains("Superclass: java.lang.Number"), true);
+		assertEquals(outContent.toString().contains("public java.lang.Number()"), true);
+		assertEquals(outContent.toString().contains("Superclass: java.lang.Object"), true);
+		assertEquals(outContent.toString().contains("public java.lang.Object()"), true);
+		outContent.reset();
+		
+		//inspectConstructors
+		inspector.inspectInheritedElements((Object)new MyClassB(), "inspectConstructors");
+		assertEquals(outContent.toString().contains("Superclass: object_inspector.MyClassA"), true);
+		assertEquals(outContent.toString().contains("public object_inspector.MyClassA()"), true);
+		assertEquals(outContent.toString().contains("public object_inspector.MyClassA(int)"), true);
+		assertEquals(outContent.toString().contains("Superclass: java.lang.Object"), true);
+		assertEquals(outContent.toString().contains("public java.lang.Object()"), true);
 		outContent.reset();
 	}
 }
