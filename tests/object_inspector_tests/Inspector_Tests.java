@@ -7,6 +7,7 @@ import static org.junit.Assert.*;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.lang.reflect.Method;
 
 import org.junit.After;
 import org.junit.Before;
@@ -73,12 +74,17 @@ public class Inspector_Tests {
 		
 		//test1
 		inspector.inspectSuperclass((new String[1][1]).getClass());
-		assertEquals("Superclass:\r\n\tjava.lang.Object\r\n\r\n", outContent.toString());		
+		assertEquals(outContent.toString().contains("java.lang.Object"), true);		
 		outContent.reset();
 		
 		//test2
 		inspector.inspectSuperclass((new String("Hello")).getClass());
-		assertEquals("Superclass:\r\n\tjava.lang.Object\r\n\r\n", outContent.toString());
+		assertEquals(outContent.toString().contains("java.lang.Object"), true);
+		outContent.reset();
+		
+		//test3
+		inspector.inspectSuperclass(new MyClassB().getClass());
+		assertEquals(outContent.toString().contains("MyClassA"), true);
 		outContent.reset();
 	}
 	
@@ -86,36 +92,37 @@ public class Inspector_Tests {
 	public void testInspectMethods()
 	{
 		Inspector inspector = new Inspector();
-		inspector.inspectMethods(((Object)new MyClassA()).getClass(), "\t");
+		inspector.inspectMethods(((Object)new MyClassA()).getClass(), "");
 		
 		/*getDeclaredMethods() appears to sometimes return functions in different orders
 		so instead of checking exact order of methods, we just ensure that each method exists */
-		assertEquals(outContent.toString().contains("\tpublic void run()\r\n"), true);
-		assertEquals(outContent.toString().contains("\tpublic java.lang.String toString()\r\n"), true);
-		assertEquals(outContent.toString().contains("\tpublic void setVal(int) throws java.lang.Exception\r\n"), true);
-		assertEquals(outContent.toString().contains("\tpublic int getVal()\r\n"), true);
-		assertEquals(outContent.toString().contains("\tprivate void printSomething()\r\n"), true);
+		
+		assertEquals(outContent.toString().contains("public void run()"), true);
+		assertEquals(outContent.toString().contains("public java.lang.String toString()"), true);
+		assertEquals(outContent.toString().contains("public void setVal(int) throws java.lang.Exception"), true);
+		assertEquals(outContent.toString().contains("public int getVal()"), true);
+		assertEquals(outContent.toString().contains("private void printSomething()"), true);
 		outContent.reset();
 		
-		inspector.inspectMethods(((Object)new ClassD()).getClass(), "\t");
-		assertEquals(outContent.toString().contains("\tpublic java.lang.String toString()\r\n"), true);
-		assertEquals(outContent.toString().contains("\tpublic int getVal3()\r\n"), true);
+		inspector.inspectMethods(((Object)new MyClassB()).getClass(), "");
+		assertEquals(outContent.toString().contains("public void functionInB(int) throws java.io.IOException"), true);
 	}
 	
 	@Test
 	public void testInspectInheritedElements()
 	{
 		Inspector inspector = new Inspector();
-		inspector.inspectInheritedElements((Object)"Hello", "inspectMethods");
 		
 		//both tests below inherit from type Object, so different methods from the Object class are tested.
-		
+	
 		/*getDeclaredMethods() appears to sometimes return functions in different orders
 		so instead of checking exact order of methods, we just ensure that each method exists */
-		assertEquals(outContent.toString().contains("\tpublic boolean equals(java.lang.Object)\r\n"), true);
-		assertEquals(outContent.toString().contains("\tpublic java.lang.String toString()\r\n"), true);
-		assertEquals(outContent.toString().contains("\tpublic native int hashCode()\r\n"), true);
-		assertEquals(outContent.toString().contains("\tprotected native java.lang.Object clone() throws java.lang.CloneNotSupportedException\r\n"), true);
+		inspector.inspectInheritedElements((Object)"Hello", "inspectMethods");
+
+		assertEquals(outContent.toString().contains("public boolean equals(java.lang.Object)"), true);
+		assertEquals(outContent.toString().contains("public java.lang.String toString()"), true);
+		assertEquals(outContent.toString().contains("public native int hashCode()"), true);
+		assertEquals(outContent.toString().contains("protected native java.lang.Object clone() throws java.lang.CloneNotSupportedException"), true);
 		outContent.reset();
 		
 		inspector.inspectInheritedElements((Object)new Integer(4), "inspectMethods");
@@ -136,18 +143,18 @@ public class Inspector_Tests {
 		
 		//different method name passed to perform different functions, inspectConstructors
 		inspector.inspectInheritedElements((Object)new Integer(5), "inspectConstructors");
-		assertEquals(outContent.toString().contains("Superclass: java.lang.Number"), true);
+		assertEquals(outContent.toString().contains("java.lang.Number"), true);
 		assertEquals(outContent.toString().contains("public java.lang.Number()"), true);
-		assertEquals(outContent.toString().contains("Superclass: java.lang.Object"), true);
+		assertEquals(outContent.toString().contains("java.lang.Object"), true);
 		assertEquals(outContent.toString().contains("public java.lang.Object()"), true);
 		outContent.reset();
 		
 		//inspectConstructors
 		inspector.inspectInheritedElements((Object)new MyClassB(), "inspectConstructors");
-		assertEquals(outContent.toString().contains("Superclass: object_inspector.MyClassA"), true);
+		assertEquals(outContent.toString().contains("object_inspector.MyClassA"), true);
 		assertEquals(outContent.toString().contains("public object_inspector.MyClassA()"), true);
 		assertEquals(outContent.toString().contains("public object_inspector.MyClassA(int)"), true);
-		assertEquals(outContent.toString().contains("Superclass: java.lang.Object"), true);
+		assertEquals(outContent.toString().contains("java.lang.Object"), true);
 		assertEquals(outContent.toString().contains("public java.lang.Object()"), true);
 		outContent.reset();
 	}

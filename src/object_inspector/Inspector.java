@@ -8,6 +8,8 @@ import java.util.Vector;
 
 @SuppressWarnings("rawtypes") 
 public class Inspector {
+	private final String DELIMITER = "   ";
+	
 	public Inspector()
 	{
 		
@@ -21,26 +23,23 @@ public class Inspector {
 		
 		//TODO check if object received is an array and handle accordingly
 		System.out.println("Inspecting " + (classNameDetails[0].compareTo("0") == 0 ? "non-array" : classNameDetails[0] + "D") + " object: ");
-		System.out.println("\t" + classNameDetails[1]);
+		System.out.println(DELIMITER + classNameDetails[1]);
 		System.out.println();
 		
 		inspectSuperclass(c);
 		inspectInterfaces(c);
 		
 		System.out.println("Declared Class Methods:");
-		inspectMethods(c, "\t");
+		inspectMethods(c, DELIMITER);
 		
 		System.out.println("Inherited Methods:");
 		inspectInheritedElements(obj, "inspectMethods");
 
 		System.out.println("Declared Constructors:");
-		inspectConstructors(c, "\t");
+		inspectConstructors(c, DELIMITER);
 		
 		System.out.println("Inherited Constructors:");
-		inspectInheritedConstructors(c);
-		
-//		System.out.println("Inherited Constructors:");
-//		inspectInheritedElements(obj, "inspectConstructors");
+		inspectInheritedElements(obj, "inspectConstructors");
 	}
 	
 	/**
@@ -92,9 +91,9 @@ public class Inspector {
 		{
 			superclassName = superclassObject.getName();
 			System.out.println("Superclass:");
-			System.out.println("\t" + superclassName);
+			System.out.println(DELIMITER + superclassName);
 		}else
-			System.out.println("\tClass does not have a superclass.");
+			System.out.println(DELIMITER + "Class does not have a superclass.");
 		
 		System.out.println();
 	}
@@ -114,10 +113,10 @@ public class Inspector {
 		{
 			for(int i = 0; i < curInterfaces.length; i ++)
 			{
-				System.out.println("\t" + curInterfaces[i]);
+				System.out.println(DELIMITER + curInterfaces[i]);
 			}
 		}else
-			System.out.println("\tNone implemented.");
+			System.out.println(DELIMITER + "None implemented.");
 		
 		System.out.println();
 	}
@@ -148,120 +147,119 @@ public class Inspector {
 	public void inspectMethods(Class c, String delimiter)
 	{
 		Method[] methods = c.getDeclaredMethods();
-		int i, j, k,
-			modifiers;
-		String methodName,
-			readableModifiers;
-		Class[] parameterTypes,
-			exceptionTypes;
-		Class returnType;
+		int i;
 		
 		if(methods.length == 0)
-			System.out.println("\tNo implemented methods");
+			System.out.println(delimiter + "No implemented methods");
 		else
 		{
 			for(i = 0; i < methods.length; i++)
-			{
-				modifiers = methods[i].getModifiers();
-				readableModifiers = Modifier.toString(modifiers);
-				methodName = methods[i].getName();
-				parameterTypes = methods[i].getParameterTypes();
-				exceptionTypes = methods[i].getExceptionTypes();
-				returnType = methods[i].getReturnType();
-				
-				System.out.print(delimiter + readableModifiers + " " + returnType.getName() + " " + methodName + "(");
-				
-				if (parameterTypes.length > 0)
-				{
-					for(j = 0; j < parameterTypes.length - 1; j++)
-						System.out.print(parameterTypes[j].getName() +", ");
-					
-					System.out.print(parameterTypes[j].getName() + ")");
-				}else
-					System.out.print(")");
-				
-				if(exceptionTypes.length > 0)
-				{
-					System.out.print(" throws ");
-					for(k = 0; k < exceptionTypes.length - 1; k++)
-						System.out.print(exceptionTypes[k].getName() + ", ");
-					
-					System.out.println(exceptionTypes[k].getName());
-				}else
-					System.out.println();
+			{			
+				//System.out.print(delimiter);
+				writeMethod(methods[i].getModifiers(),
+						methods[i].getReturnType().getName(),
+						methods[i].getName(),
+						methods[i].getParameterTypes(),
+						methods[i].getExceptionTypes(),
+						delimiter);
 			}
 		}
 		
 		System.out.println();
+//				modifiers = methods[i].getModifiers();
+//				readableModifiers = Modifier.toString(modifiers);
+//				methodName = methods[i].getName();
+//				parameterTypes = methods[i].getParameterTypes();
+//				exceptionTypes = methods[i].getExceptionTypes();
+//				returnType = methods[i].getReturnType();
+//				
+//				System.out.print(delimiter + readableModifiers + " " + returnType.getName() + " " + methodName + "(");
+//				
+//				if (parameterTypes.length > 0)
+//				{
+//					for(j = 0; j < parameterTypes.length - 1; j++)
+//						System.out.print(parameterTypes[j].getName() +", ");
+//					
+//					System.out.print(parameterTypes[j].getName() + ")");
+//				}else
+//					System.out.print(")");
+//				
+//				if(exceptionTypes.length > 0)
+//				{
+//					System.out.print(" throws ");
+//					for(k = 0; k < exceptionTypes.length - 1; k++)
+//						System.out.print(exceptionTypes[k].getName() + ", ");
+//					
+//					System.out.println(exceptionTypes[k].getName());
+//				}else
+//					System.out.println();
+//			}
 	}
 	
-	public void inspectConstructors(Class c, String delimiter)
+	
+	/**
+	 * 
+	 * @param modifiers
+	 * @param returnType
+	 * @param methodName
+	 * @param parameterTypes
+	 * @param exceptionTypes
+	 * @param delimiter
+	 */
+	public void writeMethod(int modifiers, String returnType, String methodName, Class[] parameterTypes, Class[] exceptionTypes, String delimiter)
 	{
-		Constructor[] constructors = c.getDeclaredConstructors();
-		int modifiers;
-		String readableModifiers;
-		Class[] parameterTypes,
-			exceptionTypes;
+		String readableModifiers = Modifier.toString(modifiers);
+		int j, k;
 		
-		int i, j, k;
+		System.out.print(delimiter);
+		//write method modifiers, return type, and method name
+		System.out.print(readableModifiers + (returnType == "" ? " " : (" " + returnType + " ")) + methodName + "(");
 		
-		for (i = 0; i < constructors.length; i++)
+		//write parameters
+		if (parameterTypes.length > 0)
 		{
-			modifiers = constructors[i].getModifiers();
-			readableModifiers = Modifier.toString(modifiers);			
-			parameterTypes = constructors[i].getParameterTypes();
-			exceptionTypes = constructors[i].getExceptionTypes();
+			for(j = 0; j < parameterTypes.length - 1; j++)
+				System.out.print(parameterTypes[j].getName() +", ");
 			
-			System.out.print(delimiter + readableModifiers + " " + c.getName() + "(");
-			if(parameterTypes.length > 0)
-			{
-				for(j = 0; j < parameterTypes.length - 1; j++)
-					System.out.print(parameterTypes[j].getName());
-				
-				System.out.print(parameterTypes[j].getName() + ")");
-			}else
-				System.out.print(")");
-			
-			if(exceptionTypes.length > 0)
-			{
-				System.out.print(" throws ");
-				for(k = 0; k < exceptionTypes.length - 1; k++)
-					System.out.print(exceptionTypes[k].getName() + ", ");
-				
-				System.out.println(exceptionTypes[k].getName());
-			}else
-				System.out.println();	
-		}
+			System.out.print(parameterTypes[j].getName() + ")");
+		}else
+			System.out.print(")");
 		
-		System.out.println();
+		//write exceptions
+		if(exceptionTypes.length > 0)
+		{
+			System.out.print(" throws ");
+			for(k = 0; k < exceptionTypes.length - 1; k++)
+				System.out.print(exceptionTypes[k].getName() + ", ");
+			
+			System.out.println(exceptionTypes[k].getName());
+		}else
+			System.out.println();
 	}
 	
 	/**
 	 * 
 	 * @param c
+	 * @param delimiter
 	 */
-	public void inspectInheritedConstructors(Class c)
+	public void inspectConstructors(Class c, String delimiter)
 	{
-		Vector<Class> superclasses = new Vector<Class>();
-		getAllSuperclasses(c, superclasses);
-		Class curClass;
-		String delimiter = "";
+		Constructor[] constructors = c.getDeclaredConstructors();
+		int i;
 		
-		if (superclasses.size() > 0)
+		for (i = 0; i < constructors.length; i++)
 		{
-			for(Iterator i = superclasses.iterator(); i.hasNext();)
-			{
-				curClass = (Class)i.next();
-				System.out.println(delimiter + "Superclass: " + curClass.getName());
-				
-				delimiter += "\t";
-				inspectConstructors(curClass, delimiter);		
-			}
-		}else
-			System.out.println("Class does not have superclass. No inherited methods.");
+			writeMethod(constructors[i].getModifiers(),
+					"",
+					constructors[i].getName(),
+					constructors[i].getParameterTypes(),
+					constructors[i].getExceptionTypes(),
+					delimiter);
+		}
 		
 		System.out.println();
 	}
+	
 	
 	public Method getMethod(String methodName, Class[] params)
 	{
@@ -294,12 +292,11 @@ public class Inspector {
 			for(Iterator i = superclasses.iterator(); i.hasNext();)
 			{
 				curClass = (Class)i.next();
-				System.out.println(delimiter + "Superclass: " + curClass.getName());
+				System.out.println(delimiter + curClass.getName());
 				
-				delimiter += "\t";
+				delimiter += DELIMITER;
 				try{
 					method.invoke(this, new Object[] {curClass, new String(delimiter) });
-					
 				}catch (Exception ex)
 				{
 					System.out.println(ex.getMessage());
@@ -307,7 +304,5 @@ public class Inspector {
 			}
 		}else
 			System.out.println("Class does not have superclass. No inherited methods.");
-		
-		System.out.println();
 	}
 }
