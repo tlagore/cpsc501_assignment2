@@ -5,7 +5,9 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 import java.util.Vector;
 
 @SuppressWarnings("rawtypes") 
@@ -64,7 +66,6 @@ public class Inspector {
 	public void inspectObject(Object obj, String delimiter)
 	{
 		Class c = obj.getClass();
-		Class objType;
 		Object nextArrObj;
 		String[] classNameDetails = getClassNameDetails(c);
 		int length,
@@ -74,9 +75,7 @@ public class Inspector {
 		System.out.println(delimiter + "Inspecting fields of " + (classNameDetails[0].compareTo("0") == 0 ? "non-array" : classNameDetails[0] + "D") + " object: ");
 		delimiter += DELIMITER;
 		System.out.println(delimiter + classNameDetails[1]);
-		
-		objType = c.isArray() ? c.getComponentType() : c;
-		
+
 		if(c.isArray())
 		{
 			//handle array
@@ -101,6 +100,11 @@ public class Inspector {
 		}
 	}
 	
+	/**
+	 * 
+	 * @param c
+	 * @return
+	 */
 	public Class getBaseClassType(Class c)
 	{
 		if (c.isArray())
@@ -110,10 +114,13 @@ public class Inspector {
 		return c;
 	}
 	
+	/**
+	 * 
+	 * @param obj
+	 * @param delimiter
+	 */
 	public void inspectNonArrayObject(Object obj, String delimiter)
 	{
-		Class c = obj.getClass();
-		
 		System.out.println(delimiter + "Fields:");
 		inspectFields(obj, obj.getClass(), delimiter);
 	}
@@ -322,6 +329,7 @@ public class Inspector {
 	{
 		Field[] fields = c.getDeclaredFields();
 		String[] fieldDetails;
+		String arrayType;
 		int modifiers;
 		Object oValue;
 		int i;
@@ -329,39 +337,142 @@ public class Inspector {
 		for(i = 0; i < fields.length; i++)
 		{
 			System.out.print(delimiter);
-			
-			//get modifiers before setting accessible to true
-			
-			fieldDetails = getClassNameDetails(fields[i].getType());
-			
-			//fieldDetails[0] indicates the dimensions of the array. If it is a 0D array, it is just an element.
-			if(fieldDetails[0].compareTo("0") != 0)
-			{
-				//handle array
-				System.out.println("Array encountered, skipping for now.");
-			}else
-			{
-				if(fields[i].getType().isPrimitive() || !_Recursive)
+			try{
+				//get modifiers before setting accessible to true
+				modifiers = fields[i].getModifiers();
+				fields[i].setAccessible(true);
+				oValue = fields[i].get(obj);	
+				
+				//fieldDetails[0] indicates the dimensions of the array. If it is a 0D array, it is just an element.
+				if(fields[i].getType().isArray())
 				{
-					//handle primitive or just list object contents
-					listRawFieldContents(obj, fields[i]);
+					//handle array
+					fieldDetails = getClassNameDetails(fields[i].getType());
+					arrayType = getArrayType(fieldDetails[1]);
+					fields[i].setAccessible(true);
+					oValue = fields[i].get(obj);
+					
+					System.out.print(Modifier.toString(modifiers) + " " + arrayType);
+					printBrackets(Integer.parseInt(fieldDetails[0]));
+					System.out.print(" " + fields[i].getName() + " = ");
+					
+					inspectArray(oValue, delimiter);
+					System.out.println();
 				}else
 				{
-					try{
-						modifiers = fields[i].getModifiers();
-						fields[i].setAccessible(true);
-						oValue = fields[i].get(obj);
-						System.out.println(Modifier.toString(modifiers) + " " + fields[i].getType().getName() + " = " + (oValue == null ? "null" : ""));
-						if(oValue != null)
-							inspectFields(oValue, fields[i].getType(), delimiter + DELIMITER);
-
-					}catch(IllegalAccessException ex)
+					if(fields[i].getType().isPrimitive() || !_Recursive)
 					{
-						System.out.println("Cannot access field. Illegal Access. " + ex.getMessage());
+						//handle primitive or just list object contents
+						listRawFieldContents(obj, fields[i]);
+					}else
+					{
+						try{
+							
+							fields[i].setAccessible(true);
+							oValue = fields[i].get(obj);
+							System.out.println(Modifier.toString(modifiers) + " " + fields[i].getType().getName() + " " + fields[i].getName() + " = " + (oValue == null ? "null" : ""));
+							if(oValue != null)
+								inspectFields(oValue, fields[i].getType(), delimiter + DELIMITER);
+
+						}catch(IllegalAccessException ex)
+						{
+							System.out.println("Cannot access field. Illegal Access. " + ex.getMessage());
+						}
 					}
 				}
+			}catch(IllegalAccessException ex)
+			{
+				System.out.println("Cannot access field. Illegal access. " + ex.getMessage());
 			}
 		}
+	}
+	
+	private void inspectArray(Object oValue, String delimiter)
+	{		
+		int length, j;
+		Object nextArrObj;
+		
+		System.out.print("{");
+		
+		if (oValue != null)
+		{
+			length = Array.getLength(oValue);
+			for(j = 0; j < length; j++)
+			{
+				nextArrObj = Array.get(oValue, j);
+				if (nextArrObj != null)
+				{
+					if(isWrapper(nextArrObj.getClass()))
+					{
+						System.out.print(nextArrObj);
+					}else if(nextArrObj.getClass().isArray())
+					{
+						inspectArray(nextArrObj, delimiter);
+					}else
+					{
+						System.out.println(nextArrObj.getClass().getName() + ":(");
+						inspectFields(nextArrObj, nextArrObj.getClass(), delimiter + DELIMITER);	
+						System.out.print(delimiter + ")");
+					}
+				}
+				else
+					System.out.print(delimiter + delimiter + "null");
+				
+				System.out.print(j < length - 1 ? "," : "");
+			}
+		}else
+		{
+			System.out.println("null");
+		}
+		
+		System.out.print("}");
+	}
+	
+	private void printBrackets(int num)
+	{
+		for(int i = 0; i < num; i++)
+			System.out.print("[]");
+	}
+	
+	public String getArrayType(String str)
+	{
+		String type = "";
+		
+		switch(str.charAt(0))
+		{
+			case 'B':
+				type = "byte";
+				break;
+			case 'C':
+				type = "char";
+				break;
+			case 'D':
+				type = "double";
+				break;
+			case 'F':
+				type = "float";
+				break;
+			case 'I':
+				type = "int";
+				break;
+			case 'J':
+				type = "long";
+				break;
+			case 'L':
+				type = str.substring(1);
+				break;
+			case 'S':
+				type = "short";
+				break;
+			case 'Z':
+				type = "boolean";
+				break;
+			default:
+				type = "unknown";
+				break;
+		}
+		
+		return type;
 	}
 	
 	//TODO implement
@@ -385,10 +496,10 @@ public class Inspector {
 			}else
 				value = "null";
 
-			System.out.println(Modifier.toString(modifiers) + " " + field.getType().getName() + " = " + value.toString());
+			System.out.println(Modifier.toString(modifiers) + " " + field.getType().getName() + " " + field.getName() +  " = " + value.toString());
 		}catch(IllegalAccessException ex)
 		{
-			System.out.println("Cannot access field. Illegal Access. " + ex.getMessage());
+			System.out.print("Cannot access field. Illegal Access. " + ex.getMessage());
 		}
 	}
 	
@@ -513,5 +624,22 @@ public class Inspector {
 			}
 		}else
 			System.out.println(delimiter + "Class does not have superclass. No inherited fields.");
+	}
+	
+	public boolean isWrapper(Class c)
+	{
+		Set<Class<?>> wrappers = new HashSet<Class<?>>();
+		
+		wrappers.add(Byte.class);
+		wrappers.add(Short.class);
+		wrappers.add(Boolean.class);
+		wrappers.add(Integer.class);
+		wrappers.add(Double.class);
+		wrappers.add(Character.class);		
+		wrappers.add(Long.class);
+		wrappers.add(Float.class);
+		wrappers.add(Void.class);
+        
+        return wrappers.contains(c);
 	}
 }

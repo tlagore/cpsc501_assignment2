@@ -88,7 +88,7 @@ public class Asst2TestDriver
     		System.out.println(ex.getMessage());
     	}
     	
-    	insp.inspect(c, false);
+    	insp.inspect(c, true);
     	
 //	boolean rec=true;
 //
