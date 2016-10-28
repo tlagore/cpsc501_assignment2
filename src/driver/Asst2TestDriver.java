@@ -75,23 +75,11 @@ public class Asst2TestDriver
     //====================== MAIN =======================================
     public static void main(String[] args)
     {
-//    	ObjectInspector insps = new ObjectInspector();
-//    	insps.inspect(true, true);
-    	
-    	object_inspector.Inspector insp = new object_inspector.Inspector();
-    	ClassB[][] c = null;
-    	
-    	try{
-    		c = new ClassB[][] { { null, new ClassB() }, { new ClassB(), null } };
-    	}catch(Exception ex)
-    	{
-    		System.out.println(ex.getMessage());
-    	}
-    	
-    	insp.inspect(c, true);
-    	
-//	boolean rec=true;
-//
+	boolean rec=true;
+	
+	object_inspector.Inspector insp = new object_inspector.Inspector();
+	insp.inspect(new object_inspector.MyClassC(), true);
+	
 //	if(args.length >= 1)
 //	    {
 //		if(args.length > 1) rec = Boolean.parseBoolean(args[1]); // Bug fixed

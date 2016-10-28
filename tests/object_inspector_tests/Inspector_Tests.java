@@ -1,21 +1,16 @@
 package object_inspector_tests;
 
 
-import driver.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.PrintStream;
-import java.lang.reflect.Method;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import object_inspector.Inspector;
-import object_inspector.MyClassA;
-import object_inspector.MyClassB;
+import object_inspector.*;
 
 public class Inspector_Tests {
 
@@ -156,6 +151,50 @@ public class Inspector_Tests {
 		assertEquals(outContent.toString().contains("public object_inspector.MyClassA(int)"), true);
 		assertEquals(outContent.toString().contains("java.lang.Object"), true);
 		assertEquals(outContent.toString().contains("public java.lang.Object()"), true);
+		outContent.reset();
+	}
+	
+	@Test
+	public void testIsWrapper()
+	{
+		Inspector inspector = new Inspector();
+		
+		assertEquals(inspector.isWrapper((new Integer(5)).getClass()), true);
+		assertEquals(inspector.isWrapper((new Double(5)).getClass()), true);
+		assertEquals(inspector.isWrapper((new Long(5)).getClass()), true);
+		assertEquals(inspector.isWrapper((new String()).getClass()), false);
+		assertEquals(inspector.isWrapper((new Object()).getClass()), false);
+		assertEquals(inspector.isWrapper(this.getClass()), false);
+		assertEquals(inspector.isWrapper(inspector.getClass()), false);	
+	}
+	
+	@Test
+	public void testInspectFields()
+	{
+		Inspector inspector = new Inspector();
+		Object obj = (Object)new MyClassA();
+		inspector.inspectFields(obj, obj.getClass(), "");
+		assertEquals(outContent.toString().contains("private int val = 3"), true);
+		assertEquals(outContent.toString().contains("private double val2 = 0.2"), true);
+		assertEquals(outContent.toString().contains("private boolean val3 = true"), true);
+		outContent.reset();
+		
+		obj = (Object)new MyClassC();
+		inspector.inspectFields(obj, obj.getClass(), "");
+		assertEquals(outContent.toString().contains("object_inspector.MyClassB[] fun = {1 elements:object_inspector.MyClassB:("), true);
+		assertEquals(outContent.toString().contains("private int[][] intArray = {2 elements:{2 elements:1,2},{2 elements:3,4}}"), true);
+		outContent.reset();
+	}
+	
+	@Test
+	public void testInspectInheritedFields()
+	{
+		Inspector inspector = new Inspector();
+		Object obj = (Object)new MyClassC();
+		inspector.inspectFields(obj, obj.getClass(), "");
+		assertEquals(outContent.toString().contains("private int val = 3"), true);
+		assertEquals(outContent.toString().contains("private double val2 = 0.2"), true);
+		assertEquals(outContent.toString().contains("private boolean val3 = true"), true);
 		outContent.reset();
 	}
 }

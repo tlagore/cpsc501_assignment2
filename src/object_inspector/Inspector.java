@@ -71,7 +71,6 @@ public class Inspector {
 		int length,
 			i;		
 		
-		//TODO check if object received is an array and handle accordingly
 		System.out.println(delimiter + "Inspecting fields of " + (classNameDetails[0].compareTo("0") == 0 ? "non-array" : classNameDetails[0] + "D") + " object: ");
 		delimiter += DELIMITER;
 		System.out.println(delimiter + classNameDetails[1]);
@@ -321,7 +320,7 @@ public class Inspector {
 	 * inspectFields takes in a class and a delimiter and writes all the fields of Class to system.out along with their variables.<p>
 	 * If inspect() was called with recursive set to true, it will also explore any objects found by traversing those objects as well.
 	 * 
-	 * @param obj The base level object being inspected
+	 * @param obj The base level object being inspected (to support for inherited classes)
 	 * @param c The current class being inspected
 	 * @param delimiter prefixes each field (can be empty)
 	 */
@@ -397,6 +396,7 @@ public class Inspector {
 		if (oValue != null)
 		{
 			length = Array.getLength(oValue);
+			System.out.print(length + " elements:");
 			for(j = 0; j < length; j++)
 			{
 				nextArrObj = Array.get(oValue, j);
@@ -416,7 +416,7 @@ public class Inspector {
 					}
 				}
 				else
-					System.out.print(delimiter + delimiter + "null");
+					System.out.print("null");
 				
 				System.out.print(j < length - 1 ? "," : "");
 			}
@@ -475,7 +475,11 @@ public class Inspector {
 		return type;
 	}
 	
-	//TODO implement
+	/**
+	 * 
+	 * @param obj
+	 * @param field
+	 */
 	public void listRawFieldContents(Object obj, Field field)
 	{
 		String value = "";
@@ -606,7 +610,7 @@ public class Inspector {
 	public void inspectInheritedFields(Object obj, String delimiter)
 	{
 		Vector<Class> superclasses = new Vector<Class>();
-		getAllSuperclasses(this.getBaseClassType(obj.getClass()), superclasses);
+		getAllSuperclasses(obj.getClass(), superclasses);
 		int i;
 		
 		if (superclasses.size() > 0)
@@ -615,7 +619,7 @@ public class Inspector {
 			{
 				try
 				{
-					System.out.println("Superclass: " + superclasses.get(i).getName());
+					System.out.println("Inherited fields for superclass: " + superclasses.get(i).getName());
 					inspectFields(obj, superclasses.get(i), delimiter);
 				}catch(Exception ex)
 				{
@@ -626,6 +630,11 @@ public class Inspector {
 			System.out.println(delimiter + "Class does not have superclass. No inherited fields.");
 	}
 	
+	/**
+	 * 
+	 * @param c
+	 * @return
+	 */
 	public boolean isWrapper(Class c)
 	{
 		Set<Class<?>> wrappers = new HashSet<Class<?>>();
