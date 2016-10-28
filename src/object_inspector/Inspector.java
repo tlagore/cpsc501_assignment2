@@ -51,8 +51,16 @@ public class Inspector {
 		inspectInheritedElements(obj, "inspectConstructors", DELIMITER);
 		
 		inspectObject(obj, "");
+		
+		System.out.println("Inherited Fields:");
+		inspectInheritedFields(obj, DELIMITER);
 	}
 	
+	/**
+	 * inspectObject takes in an object and a delimiter (for formatting)
+	 * @param obj
+	 * @param delimiter
+	 */
 	public void inspectObject(Object obj, String delimiter)
 	{
 		Class c = obj.getClass();
@@ -105,21 +113,6 @@ public class Inspector {
 	public void inspectNonArrayObject(Object obj, String delimiter)
 	{
 		Class c = obj.getClass();
-		
-//		inspectSuperclass(c, delimiter);
-//		inspectInterfaces(c, delimiter);
-//		
-//		System.out.println(delimiter + "Declared Class Methods:");
-//		inspectMethods(c, delimiter);
-//		
-//		System.out.println(delimiter + "Inherited Methods:");
-//		inspectInheritedElements(obj, "inspectMethods", delimiter);
-//
-//		System.out.println(delimiter + "Declared Constructors:");
-//		inspectConstructors(c, delimiter);
-//		
-//		System.out.println(delimiter + "Inherited Constructors:");
-//		inspectInheritedElements(obj, "inspectConstructors", delimiter);
 		
 		System.out.println(delimiter + "Fields:");
 		inspectFields(obj, obj.getClass(), delimiter);
@@ -499,4 +492,26 @@ public class Inspector {
 			System.out.println("Class does not have superclass. No inherited methods.");
 	}
 
+	public void inspectInheritedFields(Object obj, String delimiter)
+	{
+		Vector<Class> superclasses = new Vector<Class>();
+		getAllSuperclasses(this.getBaseClassType(obj.getClass()), superclasses);
+		int i;
+		
+		if (superclasses.size() > 0)
+		{
+			for(i = 0; i < superclasses.size(); i ++)
+			{
+				try
+				{
+					System.out.println("Superclass: " + superclasses.get(i).getName());
+					inspectFields(obj, superclasses.get(i), delimiter);
+				}catch(Exception ex)
+				{
+					System.out.println(ex.getMessage());
+				}
+			}
+		}else
+			System.out.println(delimiter + "Class does not have superclass. No inherited fields.");
+	}
 }
