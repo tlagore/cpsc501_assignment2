@@ -52,18 +52,19 @@ public class Inspector {
 		System.out.println("Inherited Constructors:");
 		inspectInheritedElements(obj, "inspectConstructors", DELIMITER);
 		
-		inspectObject(obj, "");
+		inspectObjectFields(obj, "");
 		
 		System.out.println("Inherited Fields:");
 		inspectInheritedFields(obj, DELIMITER);
 	}
 	
 	/**
-	 * inspectObject takes in an object and a delimiter (for formatting)
+	 * inspectObjectFields takes in an object and a delimiter (for formatting) and inspects all field
+	 * 
 	 * @param obj
 	 * @param delimiter
 	 */
-	public void inspectObject(Object obj, String delimiter)
+	public void inspectObjectFields(Object obj, String delimiter)
 	{
 		Class c = obj.getClass();
 		Object nextArrObj;
@@ -85,7 +86,7 @@ public class Inspector {
 					System.out.println(delimiter + "Element " + i);
 					nextArrObj = Array.get(obj,i);
 					if (nextArrObj != null)
-						inspectObject(Array.get(obj, i), delimiter + DELIMITER);	
+						inspectObjectFields(Array.get(obj, i), delimiter + DELIMITER);	
 					else
 						System.out.println(delimiter + delimiter + "null");
 				}
@@ -100,9 +101,12 @@ public class Inspector {
 	}
 	
 	/**
+	 * getBaseClassType returns the base class type of a given class. In the case of non-array objects, the class is simply returned.
+	 * <p>
+	 * If the class is an array, then it recursively derives the base level class that the array is holding.
 	 * 
-	 * @param c
-	 * @return
+	 * @param c The componentType of the class being determined
+	 * @return c if it was a base level class, else the base level class that the array is holding
 	 */
 	public Class getBaseClassType(Class c)
 	{
@@ -342,7 +346,7 @@ public class Inspector {
 				fields[i].setAccessible(true);
 				oValue = fields[i].get(obj);	
 				
-				//fieldDetails[0] indicates the dimensions of the array. If it is a 0D array, it is just an element.
+				//handle array
 				if(fields[i].getType().isArray())
 				{
 					//handle array
@@ -355,16 +359,17 @@ public class Inspector {
 					printBrackets(Integer.parseInt(fieldDetails[0]));
 					System.out.print(" " + fields[i].getName() + " = ");
 					
-					inspectArray(oValue, delimiter);
+					inspectArrayField(oValue, delimiter);
 					System.out.println();
 				}else
 				{
+					//handle primitive - or list object contents if not recursive
 					if(fields[i].getType().isPrimitive() || !_Recursive)
 					{
-						//handle primitive or just list object contents
 						listRawFieldContents(obj, fields[i]);
 					}else
 					{
+						//handle non-primitive type with _Recursive = true
 						try{
 							
 							fields[i].setAccessible(true);
@@ -386,43 +391,56 @@ public class Inspector {
 		}
 	}
 	
-	private void inspectArray(Object oValue, String delimiter)
+	/**
+	 * inspectArrayField takes in an Object that represents and array and inspects all elements of the array.
+	 * <p>
+	 * It is assumed that the Object handed in is an array
+	 * 
+	 * @param oValue the object representation of the array being inspected
+	 * @param delimiter a delimiter that will prefix all new line output
+	 * @throws IllegalArgumentException if the object was not of type array
+	 */
+	private void inspectArrayField(Object oValue, String delimiter) throws IllegalArgumentException
 	{		
 		int length, j;
 		Object nextArrObj;
 		
 		System.out.print("{");
-		
-		if (oValue != null)
-		{
-			length = Array.getLength(oValue);
-			System.out.print(length + " elements:");
-			for(j = 0; j < length; j++)
+		try{
+			if (oValue != null)
 			{
-				nextArrObj = Array.get(oValue, j);
-				if (nextArrObj != null)
+				length = Array.getLength(oValue);
+				System.out.print(length + " elements:");
+				for(j = 0; j < length; j++)
 				{
-					if(isWrapper(nextArrObj.getClass()))
+					nextArrObj = Array.get(oValue, j);
+					if (nextArrObj != null)
 					{
-						System.out.print(nextArrObj);
-					}else if(nextArrObj.getClass().isArray())
-					{
-						inspectArray(nextArrObj, delimiter);
-					}else
-					{
-						System.out.println(nextArrObj.getClass().getName() + ":(");
-						inspectFields(nextArrObj, nextArrObj.getClass(), delimiter + DELIMITER);	
-						System.out.print(delimiter + ")");
+						if(isWrapper(nextArrObj.getClass()))
+						{
+							System.out.print(nextArrObj);
+						}else if(nextArrObj.getClass().isArray())
+						{
+							inspectArrayField(nextArrObj, delimiter);
+						}else
+						{
+							System.out.println(nextArrObj.getClass().getName() + ":(");
+							inspectFields(nextArrObj, nextArrObj.getClass(), delimiter + DELIMITER);	
+							System.out.print(delimiter + ")");
+						}
 					}
+					else
+						System.out.print("null");
+					
+					System.out.print(j < length - 1 ? "," : "");
 				}
-				else
-					System.out.print("null");
-				
-				System.out.print(j < length - 1 ? "," : "");
+			}else
+			{
+				System.out.println("null");
 			}
-		}else
+		}catch(IllegalArgumentException ex)
 		{
-			System.out.println("null");
+			throw ex;
 		}
 		
 		System.out.print("}");
@@ -434,6 +452,15 @@ public class Inspector {
 			System.out.print("[]");
 	}
 	
+	/**
+	 * getArrayType returns a readable string version of the array based on the passed in string.<p>
+	 * 
+	 * The passed in string is assumed to be in the form LObjectType, B, C, D, F, I , J, S, or Z and can be derived by 
+	 * performing .getClass().getName() on any array object, removing leading '['
+	 * 
+	 * @param str The object.getClass().getName() representation of an array object without leading '['
+	 * @return a readable type of the array
+	 */
 	public String getArrayType(String str)
 	{
 		String type = "";
@@ -476,9 +503,11 @@ public class Inspector {
 	}
 	
 	/**
+	 * listRawFieldContents lists the modifiers, type, name, and value of the contents of a field to system.out. If the object is not primitive, it will
+	 * display the hashCode() value for the object.
 	 * 
-	 * @param obj
-	 * @param field
+	 * @param obj The object to which the field belongs
+	 * @param field The field being examined
 	 */
 	public void listRawFieldContents(Object obj, Field field)
 	{
@@ -507,6 +536,14 @@ public class Inspector {
 		}
 	}
 	
+	/**
+	 * getPrimitiveObject value takes in an object and a field and attempts to retrieve the value of the primitive object represented by that field
+	 * 
+	 * @param obj The object to which the field belongs
+	 * @param field The field of the object of the value that is desired
+	 * @return the value of object or empty string if field handed in was not a primitive object
+	 * @throws IllegalAccessException If the field value cannot be accessed
+	 */
 	public String getPrimitiveObjectValue(Object obj, Field field) throws IllegalAccessException
 	{
 		String value = "";
@@ -575,6 +612,7 @@ public class Inspector {
 	 * 
 	 * @param obj The instantiation of the Class that is intended to inspect the hierarchy of
 	 * @param methodName The name of the method that will be called on each superclass Class.
+	 * @param delimiter A delimiter that will prefix all output
 	 */
 	public void inspectInheritedElements(Object obj, String methodName, String delimiter)
 	{
@@ -607,6 +645,12 @@ public class Inspector {
 			System.out.println("Class does not have superclass. No inherited methods.");
 	}
 
+	/**
+	 * inspectInheritedFields inspects all fields for all superclasses of the handed in object
+	 * 
+	 * @param obj The object to inspect
+	 * @param delimiter A delimiter that will prefix all output
+	 */
 	public void inspectInheritedFields(Object obj, String delimiter)
 	{
 		Vector<Class> superclasses = new Vector<Class>();
@@ -631,9 +675,10 @@ public class Inspector {
 	}
 	
 	/**
+	 * isWrapper takes in a class and returns whether or not the class is a wrapper for a primitive object
 	 * 
-	 * @param c
-	 * @return
+	 * @param c Class being inspected 
+	 * @return true if c is a wrapper for a primitive object, false if it is not
 	 */
 	public boolean isWrapper(Class c)
 	{

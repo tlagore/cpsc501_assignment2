@@ -191,7 +191,7 @@ public class Inspector_Tests {
 	{
 		Inspector inspector = new Inspector();
 		Object obj = (Object)new MyClassC();
-		inspector.inspectFields(obj, obj.getClass(), "");
+		inspector.inspectInheritedFields(obj, "");
 		assertEquals(outContent.toString().contains("private int val = 3"), true);
 		assertEquals(outContent.toString().contains("private double val2 = 0.2"), true);
 		assertEquals(outContent.toString().contains("private boolean val3 = true"), true);

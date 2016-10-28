@@ -77,35 +77,32 @@ public class Asst2TestDriver
     {
 	boolean rec=true;
 	
-	object_inspector.Inspector insp = new object_inspector.Inspector();
-	insp.inspect(new object_inspector.MyClassC(), true);
-	
-//	if(args.length >= 1)
-//	    {
-//		if(args.length > 1) rec = Boolean.parseBoolean(args[1]); // Bug fixed
-//
-//		try
-//		    {
-//			System.out.println("Loading object inspector: " + args[0]);
-//			Asst2TestDriver driver = new Asst2TestDriver(args[0],rec);
-//			driver.runTest( new ClassA() );
-//			driver.runTest( new ClassA(12) );
-//			driver.runTest( new ClassB() );
-//			driver.runTest( new ClassD(32) );
-//			driver.runTest( new ClassD() );
-//			driver.runTest( new ClassB[12] );
-//			driver.runTest( new ClassB[12][12] );	
-//			driver.runTest( "Test String" );
-//		    }
-//		catch(Exception e)
-//		    {
-//			
-//			System.out.println("ERROR: " + e.getMessage());
-//			System.out.println("Exiting test driver");
-//		    }
-//	    }
-//	else
-//	    System.out.println("usage: java Asst2TestDriver <object inspector name> [false]\n\nFirst argument is the name of the object inspector class to load, this class should be in the current directory. the second argument is optional, if set to false the recursive introspection will not be run for the tests.\n\n");
+	if(args.length >= 1)
+	    {
+		if(args.length > 1) rec = Boolean.parseBoolean(args[1]); // Bug fixed
+
+		try
+		    {
+			System.out.println("Loading object inspector: " + args[0]);
+			Asst2TestDriver driver = new Asst2TestDriver(args[0],rec);
+			driver.runTest( new ClassA() );
+			driver.runTest( new ClassA(12) );
+			driver.runTest( new ClassB() );
+			driver.runTest( new ClassD(32) );
+			driver.runTest( new ClassD() );
+			driver.runTest( new ClassB[12] );
+			driver.runTest( new ClassB[12][12] );	
+			driver.runTest( "Test String" );
+		    }
+		catch(Exception e)
+		    {
+			
+			System.out.println("ERROR: " + e.getMessage());
+			System.out.println("Exiting test driver");
+		    }
+	    }
+	else
+	    System.out.println("usage: java Asst2TestDriver <object inspector name> [false]\n\nFirst argument is the name of the object inspector class to load, this class should be in the current directory. the second argument is optional, if set to false the recursive introspection will not be run for the tests.\n\n");
 
     }
 }
